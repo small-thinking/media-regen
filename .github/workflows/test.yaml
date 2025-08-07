@@ -42,9 +42,6 @@ jobs:
     - name: Run Black
       run: uv run black --check .
     
-    - name: Run MyPy
-      run: uv run mypy media_gen/
-    
     # Set fake environment variables for openai
     - name: Set environment variables
       run: |

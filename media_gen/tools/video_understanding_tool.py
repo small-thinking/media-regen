@@ -21,10 +21,10 @@ from ..utils.video_utils import ScreenshotInfo, extract_key_frames, extract_scre
 class VideoUnderstandingTool(BaseTool):
     """
     Tool for video understanding using OpenAI's GPT-4o-mini API.
-    
+
     This tool extracts screenshots from videos using either interval-based
-    or keyframe-based extraction and generates coherent image generation 
-    prompts for each scene. The prompts are designed to work together to 
+    or keyframe-based extraction and generates coherent image generation
+    prompts for each scene. The prompts are designed to work together to
     create a logical sequence of images that can be used for video generation.
     """
 
@@ -33,29 +33,30 @@ class VideoUnderstandingTool(BaseTool):
     client: Optional[Any] = None
 
     prompt: ClassVar[str] = """
-        Analyze these video screenshots and generate image generation prompts 
+        Analyze these video screenshots and generate image generation prompts
         for each scene.
-        
+
         User preference: {user_preference}
-        
+
         Requirements:
-        1. Each prompt should be detailed and specific enough for image 
+        1. Each prompt should be detailed and specific enough for image
            generation
         2. Prompts should maintain logical coherence between scenes
         3. Consider the visual flow and narrative progression
-        4. Include relevant details like lighting, composition, mood, and 
+        4. Include relevant details like lighting, composition, mood, and
            style
         5. Ensure prompts work together to tell a coherent visual story
         6. Ignore the text in the screenshot, if they are about the brand. Only keep non-branding words.
-        
+
         For each screenshot, provide:
-        - A detailed image generation prompt, including the scene, object, lighting, camera (e.g. overhead, close-up, etc.) 
+        - A detailed image generation prompt, including the scene, object, lighting,
+            camera (e.g. overhead, close-up, etc.)
             and image aesthetic style (cartoon, realistic, cyberpunk, etc.)
-        - A detailed image to video generation prompt, including the potential action of each objects, 
+        - A detailed image to video generation prompt, including the potential action of each objects,
             and the camera movement (e.g. pan, zoom, etc.)
 
         Both should be <100 words.
-        
+
         Respond in JSON format with the following structure:
         {{
             "scenes": [
@@ -68,16 +69,16 @@ class VideoUnderstandingTool(BaseTool):
     """
 
     def __init__(
-        self, 
-        api_key: Optional[str] = None, 
-        model: str = "gpt-4o-mini", 
+        self,
+        api_key: Optional[str] = None,
+        model: str = "gpt-4o-mini",
         **kwargs
     ):
         """
         Initialize the video understanding tool.
-        
+
         Args:
-            api_key (Optional[str]): OpenAI API key. If None, will use 
+            api_key (Optional[str]): OpenAI API key. If None, will use
                 environment variable.
             model (str): OpenAI model to use for video understanding
         """
@@ -88,7 +89,7 @@ class VideoUnderstandingTool(BaseTool):
                 "OpenAI API key is required. Set OPENAI_API_KEY environment "
                 "variable or pass api_key parameter."
             )
-        
+
         # Initialize the parent class with the required fields
         super().__init__(
             tool_name="video_understanding",
@@ -100,17 +101,17 @@ class VideoUnderstandingTool(BaseTool):
                 "scenes"
             ]
         )
-        
+
         self.api_key = api_key
         self.model = model
-        
+
         # Initialize OpenAI client
         self.client = OpenAI(api_key=api_key)
 
     def input_spec(self) -> List[Param]:
         """
         Define the input specification for the tool.
-        
+
         Returns:
             List[Param]: List of input parameters
         """
@@ -175,7 +176,7 @@ class VideoUnderstandingTool(BaseTool):
     def output_spec(self) -> List[Param]:
         """
         Define the output specification for the tool.
-        
+
         Returns:
             List[Param]: List of output parameters
         """
@@ -208,8 +209,8 @@ class VideoUnderstandingTool(BaseTool):
         ]
 
     def _extract_screenshots(
-        self, 
-        video_path: str, 
+        self,
+        video_path: str,
         extraction_mode: str = "interval",
         interval: float = 10.0,
         keyframe_threshold: float = 30.0,
@@ -218,7 +219,7 @@ class VideoUnderstandingTool(BaseTool):
     ) -> List[ScreenshotInfo]:
         """
         Extract screenshots from the video using video_utils.
-        
+
         Args:
             video_path (str): Path to the video file
             extraction_mode (str): 'interval' or 'keyframe'
@@ -226,7 +227,7 @@ class VideoUnderstandingTool(BaseTool):
             keyframe_threshold (float): Threshold for keyframe detection (for keyframe mode)
             min_interval_frames (int): Minimum frames between keyframes (for keyframe mode)
             output_dir (str): Directory to save screenshots
-            
+
         Returns:
             List[ScreenshotInfo]: List of screenshot information
         """
@@ -240,7 +241,7 @@ class VideoUnderstandingTool(BaseTool):
                     output_dir=output_dir,
                     filename_prefix="video_scene"
                 )
-                
+
                 # Convert KeyFrameInfo to ScreenshotInfo for compatibility
                 screenshots = []
                 for key_frame in key_frames:
@@ -251,7 +252,7 @@ class VideoUnderstandingTool(BaseTool):
                         file_path=key_frame.file_path
                     )
                     screenshots.append(screenshot)
-                
+
                 print(f"🔍 Extracted {len(screenshots)} key frames using scene change detection")
                 return screenshots
             else:
@@ -262,33 +263,33 @@ class VideoUnderstandingTool(BaseTool):
                     output_dir=output_dir,
                     filename_prefix="video_scene"
                 )
-                
+
                 print(f"📸 Extracted {len(screenshots)} screenshots at {interval}s intervals")
                 return screenshots
-                
+
         except Exception as e:
             raise RuntimeError(f"Failed to extract screenshots from video: {e}")
 
     def _analyze_screenshots(self, screenshots: List[ScreenshotInfo], user_preference: str) -> List[Dict[str, Any]]:
         """
         Analyze screenshots and generate image prompts using OpenAI.
-        
+
         Args:
             screenshots (List[ScreenshotInfo]): List of screenshot information
             user_preference (str): User's preference for image generation
-            
+
         Returns:
             List[Dict[str, Any]]: List of analysis results for each screenshot
         """
         if not screenshots:
             return []
-        
+
         # Prepare the analysis prompt
         base_prompt = self.prompt.format(user_preference=user_preference)
-        
+
         # Prepare content for OpenAI API
         content = [{"type": "text", "text": base_prompt}]
-        
+
         # Add screenshots to content
         for screenshot in screenshots:
             try:
@@ -302,7 +303,7 @@ class VideoUnderstandingTool(BaseTool):
             except Exception as e:
                 print(f"Warning: Failed to process screenshot {screenshot.file_path}: {e}")
                 continue
-        
+
         try:
             # Call OpenAI API
             response = self.client.chat.completions.create(
@@ -311,23 +312,23 @@ class VideoUnderstandingTool(BaseTool):
                 max_tokens=2000,
                 response_format={"type": "json_object"}
             )
-            
+
             analysis = response.choices[0].message.content
-            
+
             # Parse JSON response
             try:
                 analysis_dict = json.loads(analysis)
                 return analysis_dict.get("scenes", [])
             except json.JSONDecodeError:
                 raise RuntimeError("Failed to parse OpenAI response as JSON")
-                
+
         except Exception as e:
             raise RuntimeError(f"Failed to analyze screenshots: {e}")
 
     def run(self, input: dict) -> dict:
         """
         Analyze video and generate coherent image generation prompts.
-        
+
         Args:
             input (dict): Dictionary containing:
                 - video_path: Path to the video file
@@ -338,7 +339,7 @@ class VideoUnderstandingTool(BaseTool):
                 - min_interval_frames: Minimum frames between keyframes (for keyframe mode, optional, default: 30)
                 - output_dir: Directory to save screenshots (optional, default: ~/Downloads/video_understanding)
                 - max_tokens: Maximum tokens in response (optional, default: 2000)
-        
+
         Returns:
             dict: Dictionary containing:
                 - image_prompts: List of image generation prompts
@@ -355,14 +356,13 @@ class VideoUnderstandingTool(BaseTool):
         keyframe_threshold = input.get("keyframe_threshold", 30.0)
         min_interval_frames = input.get("min_interval_frames", 30)
         output_dir = input.get("output_dir", "~/Downloads/video_understanding")
-        max_tokens = input.get("max_tokens", 2000)
-        
+
         if not video_path:
             raise ValueError("video_path is required")
-        
+
         if not os.path.exists(video_path):
             raise FileNotFoundError(f"Video file not found: {video_path}")
-        
+
         # Extract screenshots from video
         screenshots = self._extract_screenshots(
             video_path=video_path,
@@ -372,19 +372,19 @@ class VideoUnderstandingTool(BaseTool):
             min_interval_frames=min_interval_frames,
             output_dir=output_dir
         )
-        
+
         if not screenshots:
             raise RuntimeError("No screenshots were extracted from the video")
-        
+
         # Analyze screenshots and generate prompts
         scene_analyses = self._analyze_screenshots(screenshots, user_preference)
-        
+
         # Extract results
         image_prompts = []
         video_prompts = []
         scene_descriptions = []
         screenshot_paths = [s.file_path for s in screenshots]
-        
+
         for i, analysis in enumerate(scene_analyses):
             if i < len(screenshots):
                 # Use analysis if available, otherwise create basic prompts
@@ -400,7 +400,7 @@ class VideoUnderstandingTool(BaseTool):
                     image_prompts.append(f"Scene {i+1} from video")
                     video_prompts.append(f"Scene {i+1} action")
                     scene_descriptions.append(f"Scene {i+1}")
-        
+
         # Prepare metadata
         metadata = {
             "model": self.model,
@@ -409,7 +409,7 @@ class VideoUnderstandingTool(BaseTool):
             "video_duration": f"{screenshots[-1].timestamp:.1f}s" if screenshots else "0s",
             "output_directory": output_dir
         }
-        
+
         # Add mode-specific metadata
         if extraction_mode.lower() == "keyframe":
             metadata.update({
@@ -420,7 +420,7 @@ class VideoUnderstandingTool(BaseTool):
             metadata.update({
                 "screenshot_interval": f"{screenshot_interval}s"
             })
-        
+
         return {
             "image_prompts": image_prompts,
             "video_prompts": video_prompts,
@@ -437,4 +437,4 @@ class VideoUnderstandingTool(BaseTool):
     @property
     def tool_description(self) -> str:
         """Return the description of the tool."""
-        return "Analyze videos by extracting screenshots and generating coherent image generation prompts for each scene"
+        return "Analyze videos by extracting screenshots and generating coherent image generation prompts"

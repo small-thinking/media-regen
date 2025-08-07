@@ -42,7 +42,7 @@ def main():
         print("❌ REPLICATE_API_TOKEN not found in environment variables")
         print("Please set: export REPLICATE_API_TOKEN='your_token_here'")
         sys.exit(1)
-    
+
     # Parse command line arguments
     if len(sys.argv) > 1:
         image_path = sys.argv[1]
@@ -52,37 +52,37 @@ def main():
     else:
         # Default to test image
         image_path = Path(__file__).parent / "test_image.png"
-    
+
     if len(sys.argv) > 2:
         prompt = sys.argv[2]
     else:
         # Default prompt
         prompt = "the animals standup and start playing football"
-    
+
     # Parse optional timeout and progress interval
     timeout = 600  # 10 minutes default
     progress_interval = 5  # 5 seconds default
-    
+
     # Simple argument parsing for timeout and progress interval
     for i, arg in enumerate(sys.argv[3:], 3):
         if arg == "--timeout" and i + 1 < len(sys.argv):
             timeout = int(sys.argv[i + 1])
         elif arg == "--progress-interval" and i + 1 < len(sys.argv):
             progress_interval = int(sys.argv[i + 1])
-    
+
     # Validate image path
     if not Path(image_path).exists():
         print(f"❌ Image not found: {image_path}")
         sys.exit(1)
-    
+
     print(f"🎬 Generating video from: {image_path}")
     print(f"📝 Prompt: {prompt}")
     print("📁 Output: ~/Downloads/polymind_video_generation/")
     print("-" * 60)
-    
+
     # Initialize and run video generation
     video_gen = ReplicateVideoGen()
-    
+
     # Debug: Check if image exists and get its size
     image_path_obj = Path(image_path)
     if image_path_obj.exists():
@@ -91,10 +91,10 @@ def main():
     else:
         print(f"❌ Image file not found: {image_path}")
         sys.exit(1)
-    
+
     # Expand the output folder path
     output_folder = os.path.expanduser("~/Downloads/polymind_video_generation")
-    
+
     try:
         result = video_gen.run({
             "image": str(image_path),
@@ -104,11 +104,11 @@ def main():
             "timeout": timeout,
             "progress_interval": progress_interval
         })
-        
+
         if result["video_path"]:
             print("✅ Video generated successfully!")
             print(f"📁 Saved to: {result['video_path']}")
-            
+
             # Show file size if available
             video_path = Path(result["video_path"])
             if video_path.exists():
@@ -117,11 +117,11 @@ def main():
         else:
             print(f"❌ Generation failed: {result['generation_info']}")
             sys.exit(1)
-            
+
     except Exception as e:
         print(f"❌ Error: {e}")
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    main() 
+    main()

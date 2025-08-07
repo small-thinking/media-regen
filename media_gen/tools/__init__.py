@@ -14,9 +14,9 @@ from .video_understanding_tool import VideoUnderstandingTool
 
 __all__ = [
     "ImageGenerationTool",
-    "VideoGenerationTool", 
+    "VideoGenerationTool",
     "ImageUnderstandingTool",
     "ReplicateImageGen",
     "ReplicateVideoGen",
     "VideoUnderstandingTool"
-] 
+]

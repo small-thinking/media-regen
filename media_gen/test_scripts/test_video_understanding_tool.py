@@ -32,7 +32,7 @@ def test_extraction(tool, test_video_path, use_interval=False):
     if use_interval:
         print("📸 Testing Interval-Based Extraction")
         print("-" * 40)
-        
+
         result = tool.run({
             "video_path": str(test_video_path),
             "user_preference": "cinematic style with dramatic lighting",
@@ -40,16 +40,16 @@ def test_extraction(tool, test_video_path, use_interval=False):
             "screenshot_interval": 10.0,
             "output_dir": "~/Downloads/video_understanding_interval"
         })
-        
+
         print("✅ Interval-based analysis completed!")
         print(f"📊 Scenes: {result['metadata']['total_scenes']}")
         print(f"⏱️  Duration: {result['metadata']['video_duration']}")
         print(f"📸 Interval: {result['metadata']['screenshot_interval']}")
-        
+
     else:
         print("🔍 Testing Keyframe-Based Extraction")
         print("-" * 40)
-        
+
         result = tool.run({
             "video_path": str(test_video_path),
             "user_preference": "cinematic style with dramatic lighting",
@@ -58,12 +58,12 @@ def test_extraction(tool, test_video_path, use_interval=False):
             "min_interval_frames": 15,
             "output_dir": "~/Downloads/video_understanding_keyframe"
         })
-        
+
         print("✅ Keyframe-based analysis completed!")
         print(f"📊 Scenes: {result['metadata']['total_scenes']}")
         print(f"⏱️  Duration: {result['metadata']['video_duration']}")
         print(f"🎯 Threshold: {result['metadata']['keyframe_threshold']}")
-    
+
     return len(result["image_prompts"])
 
 
@@ -79,44 +79,44 @@ def main():
         help="Use interval-based extraction (default: keyframe-based)"
     )
     args = parser.parse_args()
-    
+
     extraction_method = "interval" if args.interval else "keyframe"
-    
+
     print("=== Video Understanding Integration Test ===")
     print(f"This test will analyze test_video.mp4 using {extraction_method}-based extraction.\n")
-    
+
     # Load environment variables
     load_dotenv()
-    
+
     # Check for OpenAI API key
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         print("❌ Error: OPENAI_API_KEY not found in environment.")
         print("Please set it in your .env file.")
         return
-    
+
     # Get test video path
     test_video_path = Path(__file__).parent / "test_video.mp4"
-    
+
     if not test_video_path.exists():
         print(f"❌ Error: Test video not found at {test_video_path}")
         print("Please place a test video file named 'test_video.mp4' in the "
               "integration_tests directory.")
         return
-    
+
     print(f"✅ Found test video: {test_video_path}")
     print(f"✅ API key available: {api_key[:8]}...")
     print()
-    
+
     # Initialize tool
     tool = VideoUnderstandingTool()
-    
+
     # Test extraction method
     try:
         scene_count = test_extraction(tool, test_video_path, args.interval)
         print(f"\n📊 Results: {scene_count} scenes detected")
         print("\n✅ Integration test completed successfully!")
-        
+
     except Exception as e:
         print(f"❌ Test failed: {e}")
         return

@@ -7,4 +7,4 @@ and other media-related utilities.
 
 from .video_utils import VideoScreenshotExtractor, extract_screenshots
 
-__all__ = ['extract_screenshots', 'VideoScreenshotExtractor'] 
+__all__ = ['extract_screenshots', 'VideoScreenshotExtractor']

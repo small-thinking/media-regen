@@ -42,7 +42,7 @@ class TestVideoUnderstandingTool(unittest.TestCase):
     def test_input_spec(self):
         """Test input specification."""
         params = self.tool.input_spec()
-        
+
         # Check required parameters
         param_names = [p.name for p in params]
         self.assertIn("video_path", param_names)
@@ -50,7 +50,7 @@ class TestVideoUnderstandingTool(unittest.TestCase):
         self.assertIn("screenshot_interval", param_names)
         self.assertIn("output_dir", param_names)
         self.assertIn("max_tokens", param_names)
-        
+
         # Check video_path is required
         video_path_param = next(p for p in params if p.name == "video_path")
         self.assertTrue(video_path_param.required)
@@ -58,7 +58,7 @@ class TestVideoUnderstandingTool(unittest.TestCase):
     def test_output_spec(self):
         """Test output specification."""
         params = self.tool.output_spec()
-        
+
         # Check output parameters
         param_names = [p.name for p in params]
         self.assertIn("image_prompts", param_names)
@@ -85,12 +85,12 @@ class TestVideoUnderstandingTool(unittest.TestCase):
             )
         ]
         mock_extract.return_value = mock_screenshots
-        
+
         # Test extraction
         result = self.tool._extract_screenshots(
             "/path/to/video.mp4", 2.0, "/tmp/output"
         )
-        
+
         self.assertEqual(len(result), 2)
         mock_extract.assert_called_once_with(
             video_path="/path/to/video.mp4",
@@ -112,10 +112,10 @@ class TestVideoUnderstandingTool(unittest.TestCase):
                 file_path="/tmp/screenshot_1.jpg"
             )
         ]
-        
+
         # Mock base64 encoding
         mock_encode.return_value = "base64_encoded_image"
-        
+
         # Mock OpenAI response
         mock_response = Mock()
         mock_response.choices = [Mock()]
@@ -133,10 +133,10 @@ class TestVideoUnderstandingTool(unittest.TestCase):
         }
         '''
         mock_openai.return_value.chat.completions.create.return_value = mock_response
-        
+
         # Test analysis
         result = self.tool._analyze_screenshots(screenshots, "cinematic style")
-        
+
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]["prompt"], "A cat sitting on a windowsill")
 
@@ -163,10 +163,10 @@ class TestVideoUnderstandingTool(unittest.TestCase):
                 )
             ]
             mock_extract.return_value = screenshots
-            
+
             # Mock base64 encoding
             mock_encode.return_value = "base64_encoded_image"
-            
+
             # Mock OpenAI response
             mock_response = Mock()
             mock_response.choices = [Mock()]
@@ -191,19 +191,19 @@ class TestVideoUnderstandingTool(unittest.TestCase):
             }
             '''
             mock_openai.return_value.chat.completions.create.return_value = mock_response
-            
+
             # Test run
             result = self.tool.run({
                 "video_path": "/path/to/video.mp4",
                 "user_preference": "cinematic style"
             })
-            
+
             # Verify results
             self.assertIn("image_prompts", result)
             self.assertIn("scene_descriptions", result)
             self.assertIn("screenshot_paths", result)
             self.assertIn("metadata", result)
-            
+
             self.assertEqual(len(result["image_prompts"]), 2)
             self.assertEqual(len(result["scene_descriptions"]), 2)
             self.assertEqual(len(result["screenshot_paths"]), 2)
@@ -223,7 +223,7 @@ class TestVideoUnderstandingTool(unittest.TestCase):
     def test_run_no_screenshots(self, mock_extract):
         """Test run when no screenshots are extracted."""
         mock_extract.return_value = []
-        
+
         with patch('os.path.exists', return_value=True):
             with self.assertRaises(RuntimeError):
                 self.tool.run({"video_path": "/path/to/video.mp4"})

@@ -1,8 +1,8 @@
 """
 Image understanding tool using OpenAI's GPT-4o-mini API.
 
-This module provides a tool for analyzing images using OpenAI's vision 
-capabilities. It supports both local image files and image URLs, and can 
+This module provides a tool for analyzing images using OpenAI's vision
+capabilities. It supports both local image files and image URLs, and can
 return structured JSON responses for easy parsing.
 """
 
@@ -18,7 +18,7 @@ from polymind.core.utils import encode_image_to_base64, is_valid_image_url
 class ImageUnderstandingTool(BaseTool):
     """
     Tool for image understanding using OpenAI's GPT-4o-mini API.
-    
+
     This tool can analyze images using natural language prompts and return
     structured responses. It supports both local image files and image URLs.
     """
@@ -30,7 +30,7 @@ class ImageUnderstandingTool(BaseTool):
     def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4o-mini", **kwargs):
         """
         Initialize the image understanding tool.
-        
+
         Args:
             api_key (Optional[str]): OpenAI API key. If None, will use environment variable.
             model (str): OpenAI model to use for image understanding
@@ -42,7 +42,7 @@ class ImageUnderstandingTool(BaseTool):
                 "OpenAI API key is required. Set OPENAI_API_KEY environment "
                 "variable or pass api_key parameter."
             )
-        
+
         # Initialize the parent class with the required fields
         super().__init__(
             tool_name="image_understanding",
@@ -55,7 +55,7 @@ class ImageUnderstandingTool(BaseTool):
             model=model,
             **kwargs
         )
-        
+
         # Initialize the OpenAI client
         self.client = OpenAI(api_key=self.api_key)
 
@@ -122,10 +122,10 @@ class ImageUnderstandingTool(BaseTool):
     def _prepare_image_content(self, image_input: str) -> Dict[str, str]:
         """
         Prepare image content for OpenAI API.
-        
+
         Args:
             image_input (str): Image path or URL
-            
+
         Returns:
             Dict[str, str]: Image content dictionary for OpenAI API
         """
@@ -151,14 +151,14 @@ class ImageUnderstandingTool(BaseTool):
     def run(self, input: dict) -> dict:
         """
         Analyze images using OpenAI's vision capabilities.
-        
+
         Args:
             input (dict): Dictionary containing:
                 - prompt: Text prompt for analysis (optional, default: "What's in this image?")
                 - images: List of image paths or URLs
                 - return_json: Whether to return JSON response (optional, default: False)
                 - max_tokens: Maximum tokens in response (optional, default: 1000)
-        
+
         Returns:
             dict: Dictionary containing:
                 - analysis: Text analysis of the image(s)
@@ -170,22 +170,22 @@ class ImageUnderstandingTool(BaseTool):
         images = input.get("images", [])
         return_json = input.get("return_json", False)
         max_tokens = input.get("max_tokens", 1000)
-        
+
         if not images:
             raise ValueError("At least one image must be provided")
-        
+
         # Prepare content for OpenAI API
         content = [{"type": "text", "text": prompt}]
-        
+
         # Add images to content
         for image in images:
             image_content = self._prepare_image_content(image)
             content.append(image_content)
-        
+
         # If JSON response is requested, modify the prompt
         if return_json:
             content[0]["text"] = f"{prompt}\n\nPlease respond with a valid JSON object."
-        
+
         try:
             # Call OpenAI API
             response = self.client.chat.completions.create(
@@ -194,9 +194,9 @@ class ImageUnderstandingTool(BaseTool):
                 max_tokens=max_tokens,
                 response_format={"type": "json_object"} if return_json else None
             )
-            
+
             analysis = response.choices[0].message.content
-            
+
             # Parse JSON if requested
             if return_json:
                 try:
@@ -212,7 +212,7 @@ class ImageUnderstandingTool(BaseTool):
                 except json.JSONDecodeError:
                     # If JSON parsing fails, use the raw response
                     pass
-            
+
             # Extract metadata
             metadata = {
                 "model": self.model,
@@ -220,12 +220,12 @@ class ImageUnderstandingTool(BaseTool):
                 "prompt_tokens": str(response.usage.prompt_tokens),
                 "completion_tokens": str(response.usage.completion_tokens)
             }
-            
+
             return {
                 "analysis": analysis,
                 "metadata": metadata
             }
-            
+
         except Exception as e:
             raise RuntimeError(f"Failed to analyze images: {e}")
 
@@ -237,4 +237,4 @@ class ImageUnderstandingTool(BaseTool):
     @property
     def tool_description(self) -> str:
         """Return the description of the tool."""
-        return "Analyze images using OpenAI's GPT-4o-mini vision capabilities with custom prompts" 
+        return "Analyze images using OpenAI's GPT-4o-mini vision capabilities with custom prompts"
