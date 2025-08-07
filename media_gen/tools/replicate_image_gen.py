@@ -44,6 +44,11 @@ class ReplicateImageGen(ImageGenerationTool):
         )
         self._model = model
 
+    @property
+    def model(self) -> str:
+        """Get the current model being used."""
+        return self._model
+
     def run(self, input: dict) -> dict:
         """
         Generate images using Replicate API.
@@ -174,7 +179,22 @@ class ReplicateImageGen(ImageGenerationTool):
                     {"model": model, "prompt": single_prompt, "error": str(e), "status": "generation failed"}
                 )
 
-        return {"generated_image_paths": generated_images, "image_generation_info": generation_info}
+        # Return format matching the base class interface
+        if len(generated_images) == 1:
+            return {
+                "image_path": generated_images[0],
+                "generation_info": generation_info[0] if generation_info else {}
+            }
+        else:
+            # For multiple images, return the first one as primary and include all info
+            return {
+                "image_path": generated_images[0] if generated_images else "",
+                "generation_info": {
+                    "all_images": generated_images,
+                    "all_info": generation_info,
+                    "count": len(generated_images)
+                }
+            }
 
     async def _execute(self, input: Message) -> Message:
         """

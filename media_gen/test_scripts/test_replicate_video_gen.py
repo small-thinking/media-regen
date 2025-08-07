@@ -32,7 +32,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 # Load environment variables from .env file
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
-from tools.replicate_video_gen import ReplicateVideoGen
+from media_gen.tools.replicate_video_gen import ReplicateVideoGen
 
 
 def main():

@@ -18,34 +18,25 @@ import os
 import sys
 from pathlib import Path
 
+import pytest
+
 # Add parent directory to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from tools.replicate_video_gen import ReplicateVideoGen
+from media_gen.tools.replicate_video_gen import ReplicateVideoGen
 
 
 def test_replicate_video_generation():
     """Test the Replicate video generation functionality."""
-    print("🎬 Replicate Video Generation Test")
-    print("=" * 50)
-
     # Check for Replicate API token
     if not os.getenv("REPLICATE_API_TOKEN"):
-        print("❌ REPLICATE_API_TOKEN not found in environment variables")
-        print("Please set your Replicate API token:")
-        print("export REPLICATE_API_TOKEN='your_token_here'")
-        return False
+        pytest.skip("REPLICATE_API_TOKEN not found in environment variables")
 
     # Path to test image
     test_image_path = Path(__file__).parent / "test_image.png"
 
     if not test_image_path.exists():
-        print(f"❌ Test image not found at: {test_image_path}")
-        print("Please ensure test_image.png exists in the tests directory")
-        return False
-
-    print(f"✅ Test image found: {test_image_path}")
-    print(f"📏 File size: {test_image_path.stat().st_size:,} bytes")
+        pytest.skip("Test image not found at: {test_image_path}")
 
     # Initialize the video generation tool
     video_gen = ReplicateVideoGen()
@@ -61,63 +52,37 @@ def test_replicate_video_generation():
         "this peaceful and harmonious moment."
     )
 
-    print(f"📝 Test prompt: {test_prompt[:100]}...")
-    print()
-
     # Generate video
-    print("🔄 Generating video from image and text prompt...")
-    print("-" * 50)
+    result = video_gen.run(
+        {
+            "image": str(test_image_path),
+            "prompt": test_prompt,
+            "output_folder": "~/Downloads/polymind_video_generation",
+            "output_format": "mp4",
+        }
+    )
 
-    try:
-        result = video_gen.run(
-            {
-                "image": str(test_image_path),
-                "prompt": test_prompt,
-                "output_folder": "~/Downloads/polymind_video_generation",
-                "output_format": "mp4",
-            }
-        )
+    # Assertions
+    assert result["video_path"], "Video generation should return a path"
+    assert result["generation_info"], "Video generation should return info"
 
-        if result["video_path"]:
-            print("✅ Video generated successfully!")
-            print(f"📁 Video saved to: {result['video_path']}")
-            print(f"📊 Generation info: {result['generation_info']}")
-
-            # Check if file exists and get size
-            video_path = Path(result["video_path"])
-            if video_path.exists():
-                print(f"📏 Video file size: {video_path.stat().st_size:,} bytes")
-            else:
-                print("⚠️  Video file not found at expected location")
-
-            return True
-        else:
-            print(f"❌ Video generation failed: {result['generation_info']}")
-            return False
-
-    except Exception as e:
-        print(f"❌ Video generation failed with exception: {e}")
-        return False
+    # Check if file exists
+    video_path = Path(result["video_path"])
+    assert video_path.exists(), f"Video file should exist at {video_path}"
 
 
 def test_with_data_uri():
     """Test video generation using data URI for image input."""
-    print("\n🔄 Testing with data URI image input...")
-    print("-" * 50)
-
     # Path to test image
     test_image_path = Path(__file__).parent / "test_image.png"
 
     if not test_image_path.exists():
-        print("❌ Test image not found for data URI test")
-        return False
+        pytest.skip("Test image not found for data URI test")
 
     # Convert image to data URI
     with open(test_image_path, "rb") as file:
         data = base64.b64encode(file.read()).decode("utf-8")
         data_uri = f"data:application/octet-stream;base64,{data}"
-
-    print(f"✅ Converted image to data URI ({len(data_uri)} chars)")
 
     # Initialize the video generation tool
     video_gen = ReplicateVideoGen()
@@ -125,53 +90,18 @@ def test_with_data_uri():
     # Test parameters
     test_prompt = "A serene landscape with gentle movement and natural lighting"
 
-    try:
-        result = video_gen.run(
-            {
-                "image": data_uri,
-                "prompt": test_prompt,
-                "output_folder": "~/Downloads/polymind_video_generation",
-                "output_format": "mp4",
-            }
-        )
+    result = video_gen.run(
+        {
+            "image": data_uri,
+            "prompt": test_prompt,
+            "output_folder": "~/Downloads/polymind_video_generation",
+            "output_format": "mp4",
+        }
+    )
 
-        if result["video_path"]:
-            print("✅ Video generated successfully with data URI!")
-            print(f"📁 Video saved to: {result['video_path']}")
-            return True
-        else:
-            print(f"❌ Video generation failed: {result['generation_info']}")
-            return False
-
-    except Exception as e:
-        print(f"❌ Video generation failed with exception: {e}")
-        return False
+    # Assertions
+    assert result["video_path"], "Video generation should return a path"
+    assert result["generation_info"], "Video generation should return info"
 
 
-def main():
-    """Run all video generation tests."""
-    print("🎬 Replicate Video Generation Tool Tests")
-    print("=" * 60)
 
-    # Test 1: Basic video generation
-    success1 = test_replicate_video_generation()
-
-    # Test 2: Data URI input
-    success2 = test_with_data_uri()
-
-    # Summary
-    print("\n📊 Test Summary")
-    print("=" * 60)
-    print(f"✅ Basic video generation: {'PASS' if success1 else 'FAIL'}")
-    print(f"✅ Data URI input: {'PASS' if success2 else 'FAIL'}")
-
-    if success1 and success2:
-        print("\n🎉 All tests passed!")
-    else:
-        print("\n⚠️  Some tests failed. Check the output above for details.")
-
-    print("\n💡 Generated videos are saved to ~/Downloads/polymind_video_generation/")
-
-
-if __name__ == "__main__":
-    main()

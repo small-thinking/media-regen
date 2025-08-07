@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 # Add the parent directory to the path to import the tool
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from tools.video_understanding_tool import VideoUnderstandingTool
+from media_gen.tools.video_understanding_tool import VideoUnderstandingTool
 
 
 def test_extraction(tool, test_video_path, use_interval=False):

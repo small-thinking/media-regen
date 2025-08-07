@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 try:
-    from tools.replicate_image_gen import ReplicateImageGen
+    from media_gen.tools.replicate_image_gen import ReplicateImageGen
 except ImportError as e:
     if "replicate" in str(e):
         print("❌ Replicate package not installed. Please install it with:")
@@ -58,7 +58,7 @@ class TestReplicateImageGen:
         for param in expected_params:
             assert param in param_names
 
-    @patch("tools.replicate_image_gen.replicate")
+    @patch("media_gen.tools.replicate_image_gen.replicate")
     def test_run_success(self, mock_replicate):
         """Test successful image generation."""
         # Mock Replicate response
@@ -77,7 +77,7 @@ class TestReplicateImageGen:
         assert result["generation_info"]["model"] == "prunaai/wan-2.2-image"
         assert result["generation_info"]["status"] == "generated successfully"
 
-    @patch("tools.replicate_image_gen.replicate")
+    @patch("media_gen.tools.replicate_image_gen.replicate")
     def test_run_failure(self, mock_replicate):
         """Test image generation failure."""
         # Mock Replicate to raise exception
@@ -96,19 +96,24 @@ class TestReplicateImageGen:
         """Test default parameter values."""
         tool = ReplicateImageGen()
 
-        # Test with minimal input
-        with patch.object(tool, "run") as mock_run:
-            mock_run.return_value = {"image_path": "/tmp/test.jpg", "generation_info": {"status": "success"}}
+        # Test with minimal input - call the actual run method to test defaults
+        with patch("media_gen.tools.replicate_image_gen.replicate") as mock_replicate:
+            # Mock Replicate response
+            mock_output = Mock()
+            mock_output.read.return_value = b"fake_image_data"
+            mock_output.url.return_value = "https://replicate.delivery/.../output.jpeg"
+            mock_replicate.run.return_value = mock_output
 
-            tool.run({"prompt": "Test"})
+            result = tool.run({"prompt": "Test"})
 
             # Verify default values were used
-            call_args = mock_run.call_args[0][0]
-            assert call_args["aspect_ratio"] == "4:3"
-            assert call_args["output_format"] == "jpeg"
-            assert "~/Downloads" in call_args["output_folder"]
+            call_args = mock_replicate.run.call_args
+            input_params = call_args[1]["input"]
+            assert input_params["aspect_ratio"] == "9:16"  # Default from the class
+            assert input_params["quality"] == 80  # Default quality
+            assert "Downloads" in result["image_path"]  # Default output folder
 
-    @patch("tools.replicate_image_gen.replicate")
+    @patch("media_gen.tools.replicate_image_gen.replicate")
     def test_custom_parameters(self, mock_replicate):
         """Test custom parameter values."""
         # Mock Replicate response

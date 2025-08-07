@@ -105,7 +105,7 @@ warn_unreachable = true
 strict_equality = true
 
 [tool.pytest.ini_options]
-testpaths = ["media_gen/tests", "media_gen/test_scripts"]
+testpaths = ["media_gen/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

@@ -110,52 +110,52 @@ class VideoUnderstandingTool(BaseTool):
             List[Param]: List of input parameters
         """
         return [
-            Param(name="video_path", type="string", description="Path to the video file to analyze", required=True),
+            Param(name="video_path", type="str", description="Path to the video file to analyze", required=True),
             Param(
                 name="user_preference",
-                type="string",
+                type="str",
                 description="User's preference for image generation style and content",
                 required=False,
                 default="Create detailed, cinematic image generation prompts",
             ),
             Param(
                 name="extraction_mode",
-                type="string",
+                type="str",
                 description="Extraction mode: 'interval' for regular intervals or 'keyframe' for scene changes",
                 required=False,
                 default="interval",
             ),
             Param(
                 name="screenshot_interval",
-                type="number",
+                type="float",
                 description="Time interval between screenshots (for interval mode)",
                 required=False,
                 default=10.0,
             ),
             Param(
                 name="keyframe_threshold",
-                type="number",
+                type="float",
                 description="Threshold for keyframe detection (for keyframe mode)",
                 required=False,
                 default=30.0,
             ),
             Param(
                 name="min_interval_frames",
-                type="number",
+                type="int",
                 description="Minimum frames between keyframes (for keyframe mode)",
                 required=False,
                 default=30,
             ),
             Param(
                 name="output_dir",
-                type="string",
+                type="str",
                 description="Directory to save extracted screenshots",
                 required=False,
                 default="~/Downloads/video_understanding",
             ),
             Param(
                 name="max_tokens",
-                type="number",
+                type="int",
                 description="Maximum tokens in OpenAI response",
                 required=False,
                 default=2000,
@@ -170,11 +170,19 @@ class VideoUnderstandingTool(BaseTool):
             List[Param]: List of output parameters
         """
         return [
-            Param(name="image_prompts", type="array", description="List of image generation prompts for each scene"),
-            Param(name="video_prompts", type="array", description="List of video generation prompts for each scene"),
-            Param(name="scene_descriptions", type="array", description="List of scene descriptions"),
-            Param(name="screenshot_paths", type="array", description="List of paths to extracted screenshots"),
-            Param(name="metadata", type="object", description="Additional metadata about the analysis"),
+            Param(
+                name="image_prompts", 
+                type="List[str]", 
+                description="List of image generation prompts for each scene"
+            ),
+            Param(
+                name="video_prompts", 
+                type="List[str]", 
+                description="List of video generation prompts for each scene"
+            ),
+            Param(name="scene_descriptions", type="List[str]", description="List of scene descriptions"),
+            Param(name="screenshot_paths", type="List[str]", description="List of paths to extracted screenshots"),
+            Param(name="metadata", type="Dict[str, str]", description="Additional metadata about the analysis"),
         ]
 
     def _extract_screenshots(

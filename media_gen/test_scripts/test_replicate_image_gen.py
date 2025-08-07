@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 try:
-    from tools.replicate_image_gen import ReplicateImageGen
+    from media_gen.tools.replicate_image_gen import ReplicateImageGen
 except ImportError as e:
     if "replicate" in str(e):
         print("❌ Replicate package not installed. Please install it with:")

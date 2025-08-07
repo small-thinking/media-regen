@@ -20,7 +20,7 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from utils.video_utils import VideoScreenshotExtractor, extract_screenshots
+from media_gen.utils.video_utils import VideoScreenshotExtractor, extract_screenshots
 
 
 def main():

@@ -15,8 +15,8 @@ from unittest.mock import Mock, patch
 # Add the parent directory to the path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from tools.video_understanding_tool import VideoUnderstandingTool
-from utils.video_utils import ScreenshotInfo
+from media_gen.tools.video_understanding_tool import VideoUnderstandingTool
+from media_gen.utils.video_utils import ScreenshotInfo
 
 
 class TestVideoUnderstandingTool(unittest.TestCase):
@@ -66,7 +66,7 @@ class TestVideoUnderstandingTool(unittest.TestCase):
         self.assertIn("screenshot_paths", param_names)
         self.assertIn("metadata", param_names)
 
-    @patch("examples.media-gen.tools.video_understanding_tool.extract_screenshots")
+    @patch("media_gen.tools.video_understanding_tool.extract_screenshots")
     def test_extract_screenshots(self, mock_extract):
         """Test screenshot extraction."""
         # Mock screenshot data
@@ -77,7 +77,7 @@ class TestVideoUnderstandingTool(unittest.TestCase):
         mock_extract.return_value = mock_screenshots
 
         # Test extraction
-        result = self.tool._extract_screenshots("/path/to/video.mp4", 2.0, "/tmp/output")
+        result = self.tool._extract_screenshots("/path/to/video.mp4", "interval", 2.0, output_dir="/tmp/output")
 
         self.assertEqual(len(result), 2)
         mock_extract.assert_called_once_with(
@@ -87,8 +87,8 @@ class TestVideoUnderstandingTool(unittest.TestCase):
             filename_prefix="video_scene",
         )
 
-    @patch("examples.media-gen.tools.video_understanding_tool.encode_image_to_base64")
-    @patch("examples.media-gen.tools.video_understanding_tool.OpenAI")
+    @patch("media_gen.tools.video_understanding_tool.encode_image_to_base64")
+    @patch("media_gen.tools.video_understanding_tool.OpenAI")
     def test_analyze_screenshots(self, mock_openai, mock_encode):
         """Test screenshot analysis."""
         # Mock screenshots
@@ -99,12 +99,11 @@ class TestVideoUnderstandingTool(unittest.TestCase):
         # Mock base64 encoding
         mock_encode.return_value = "base64_encoded_image"
 
-        # Mock OpenAI response
+        # Mock OpenAI client and response
+        mock_client = Mock()
         mock_response = Mock()
         mock_response.choices = [Mock()]
-        mock_response.choices[
-            0
-        ].message.content = """
+        mock_response.choices[0].message.content = """
         {
             "scenes": [
                 {
@@ -117,17 +116,22 @@ class TestVideoUnderstandingTool(unittest.TestCase):
             ]
         }
         """
-        mock_openai.return_value.chat.completions.create.return_value = mock_response
+        mock_client.chat.completions.create.return_value = mock_response
+        mock_openai.return_value = mock_client
+
+        # Create tool with mocked client
+        tool = VideoUnderstandingTool(api_key="test_api_key")
+        tool.client = mock_client
 
         # Test analysis
-        result = self.tool._analyze_screenshots(screenshots, "cinematic style")
+        result = tool._analyze_screenshots(screenshots, "cinematic style")
 
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]["prompt"], "A cat sitting on a windowsill")
 
-    @patch("examples.media-gen.tools.video_understanding_tool.extract_screenshots")
-    @patch("examples.media-gen.tools.video_understanding_tool.encode_image_to_base64")
-    @patch("examples.media-gen.tools.video_understanding_tool.OpenAI")
+    @patch("media_gen.tools.video_understanding_tool.extract_screenshots")
+    @patch("media_gen.tools.video_understanding_tool.encode_image_to_base64")
+    @patch("media_gen.tools.video_understanding_tool.OpenAI")
     def test_run_success(self, mock_openai, mock_encode, mock_extract):
         """Test successful tool execution."""
         # Mock file existence
@@ -146,12 +150,11 @@ class TestVideoUnderstandingTool(unittest.TestCase):
             # Mock base64 encoding
             mock_encode.return_value = "base64_encoded_image"
 
-            # Mock OpenAI response
+            # Mock OpenAI client and response
+            mock_client = Mock()
             mock_response = Mock()
             mock_response.choices = [Mock()]
-            mock_response.choices[
-                0
-            ].message.content = """
+            mock_response.choices[0].message.content = """
             {
                 "scenes": [
                     {
@@ -171,10 +174,15 @@ class TestVideoUnderstandingTool(unittest.TestCase):
                 ]
             }
             """
-            mock_openai.return_value.chat.completions.create.return_value = mock_response
+            mock_client.chat.completions.create.return_value = mock_response
+            mock_openai.return_value = mock_client
+
+            # Create tool with mocked client
+            tool = VideoUnderstandingTool(api_key="test_api_key")
+            tool.client = mock_client
 
             # Test run
-            result = self.tool.run({"video_path": "/path/to/video.mp4", "user_preference": "cinematic style"})
+            result = tool.run({"video_path": "/path/to/video.mp4", "user_preference": "cinematic style"})
 
             # Verify results
             self.assertIn("image_prompts", result)
@@ -197,7 +205,7 @@ class TestVideoUnderstandingTool(unittest.TestCase):
             with self.assertRaises(FileNotFoundError):
                 self.tool.run({"video_path": "/nonexistent/video.mp4"})
 
-    @patch("examples.media-gen.tools.video_understanding_tool.extract_screenshots")
+    @patch("media_gen.tools.video_understanding_tool.extract_screenshots")
     def test_run_no_screenshots(self, mock_extract):
         """Test run when no screenshots are extracted."""
         mock_extract.return_value = []
