@@ -102,6 +102,3 @@ def test_with_data_uri():
     # Assertions
     assert result["video_path"], "Video generation should return a path"
     assert result["generation_info"], "Video generation should return info"
-
-
-

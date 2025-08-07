@@ -103,7 +103,9 @@ class TestVideoUnderstandingTool(unittest.TestCase):
         mock_client = Mock()
         mock_response = Mock()
         mock_response.choices = [Mock()]
-        mock_response.choices[0].message.content = """
+        mock_response.choices[
+            0
+        ].message.content = """
         {
             "scenes": [
                 {
@@ -154,7 +156,9 @@ class TestVideoUnderstandingTool(unittest.TestCase):
             mock_client = Mock()
             mock_response = Mock()
             mock_response.choices = [Mock()]
-            mock_response.choices[0].message.content = """
+            mock_response.choices[
+                0
+            ].message.content = """
             {
                 "scenes": [
                     {

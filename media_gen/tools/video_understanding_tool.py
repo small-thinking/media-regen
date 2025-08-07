@@ -171,14 +171,10 @@ class VideoUnderstandingTool(BaseTool):
         """
         return [
             Param(
-                name="image_prompts", 
-                type="List[str]", 
-                description="List of image generation prompts for each scene"
+                name="image_prompts", type="List[str]", description="List of image generation prompts for each scene"
             ),
             Param(
-                name="video_prompts", 
-                type="List[str]", 
-                description="List of video generation prompts for each scene"
+                name="video_prompts", type="List[str]", description="List of video generation prompts for each scene"
             ),
             Param(name="scene_descriptions", type="List[str]", description="List of scene descriptions"),
             Param(name="screenshot_paths", type="List[str]", description="List of paths to extracted screenshots"),
