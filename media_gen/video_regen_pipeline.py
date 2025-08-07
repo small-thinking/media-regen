@@ -2,9 +2,10 @@
 Video regeneration pipeline.
 
 Command-line tool for regenerating videos:
-1. Analyze original video using video understanding
-2. Generate images for each scene using image generation
+1. Analyze original video using video understanding (keyframe-based extraction)
+2. Generate images for each scene using image generation (9:16 aspect ratio)
 3. Generate videos from each image using video generation
+4. Concatenate all videos into a final output
 
 Usage:
     python video_regen_pipeline.py --video-path <video_path>
@@ -33,10 +34,11 @@ except ImportError:
     # dotenv not installed, continue without it
     pass
 
-from pipeline import MediaGenerationPipeline, PipelineStep, PipelineStepExecutor
-from tools.replicate_image_gen import ReplicateImageGen
-from tools.replicate_video_gen import ReplicateVideoGen
-from tools.video_understanding_tool import VideoUnderstandingTool
+from media_gen.pipeline import MediaGenerationPipeline, PipelineStep, PipelineStepExecutor
+from media_gen.tools.replicate_image_gen import ReplicateImageGen
+from media_gen.tools.replicate_video_gen import ReplicateVideoGen
+from media_gen.tools.video_understanding_tool import VideoUnderstandingTool
+from media_gen.utils.video_utils import concatenate_videos_from_folder
 
 
 def expand_path(path: str) -> str:
@@ -131,11 +133,30 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
                     "output_format": "output_format",
                 },
                 output_mapping={
-                    "generated_videos": "generated_video_paths",
+                    "generated_video_paths": "generated_video_paths",
                     "video_generation_info": "video_generation_info",
                 },
                 transform_input=self._prepare_video_generation,
                 transform_output=self._extract_video_paths,
+            )
+        )
+
+        # Add video concatenation step (final step)
+        self.add_step(
+            PipelineStep(
+                name="video_concatenation",
+                tool=None,  # We'll handle this manually in transform_input
+                input_mapping={
+                    "generated_video_paths": "video_paths",
+                    "output_folder": "output_folder",
+                    "output_format": "output_format",
+                },
+                output_mapping={
+                    "concatenated_video_path": "concatenated_video_path",
+                    "concatenation_info": "concatenation_info",
+                },
+                transform_input=self._prepare_video_concatenation,
+                transform_output=self._extract_concatenation_result,
             )
         )
 
@@ -144,7 +165,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
         video_path: str,
         user_interests: str,
         output_folder: str = "~/Downloads",
-        extraction_mode: str = "interval",
+        extraction_mode: str = "keyframe",
         screenshot_interval: float = 10.0,
         keyframe_threshold: float = 30.0,
         min_interval_frames: int = 30,
@@ -205,7 +226,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
         """
         image_prompts = tool_input.get("prompt", [])
         output_folder = tool_input.get("output_folder", "~/Downloads")
-        aspect_ratio = tool_input.get("aspect_ratio", "1:1")
+        aspect_ratio = tool_input.get("aspect_ratio", "9:16")
         # Always use png for images, regardless of the global output_format
         output_format = "png"
 
@@ -421,6 +442,159 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
             "video_generation_errors": errors,
         }
 
+    def _prepare_video_concatenation(self, tool_input: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Prepare input for video concatenation step.
+
+        Takes the list of generated videos and concatenates them into a single video.
+        """
+        # The input mapping should have already mapped generated_video_paths to video_paths
+        # But let's check both to be safe
+        generated_videos = tool_input.get("video_paths", [])
+        if not generated_videos:
+            # Fallback: try to get from the original key
+            generated_videos = tool_input.get("generated_video_paths", [])
+
+        output_folder = tool_input.get("output_folder", "~/Downloads")
+        output_format = tool_input.get("output_format", "mp4")
+
+        # Save concatenated video directly in the main output folder, not a subfolder
+        concatenated_video_path = f"{output_folder}/final_concatenated_video.{output_format}"
+
+        # Display concatenation info
+        print("\n🎬 VIDEO CONCATENATION STEP")
+        print(f"📁 Output folder: {output_folder}")
+        print(f"🎞️  Concatenating {len(generated_videos)} videos:")
+
+        for i, video_path in enumerate(generated_videos):
+            video_name = os.path.basename(video_path) if video_path else "No video"
+            print(f"   Video {i + 1}: {video_name}")
+
+        # Debug: Print the concatenation input
+        if self.debug:
+            print("\n🔍 DEBUG - Video Concatenation Input:")
+            print(f"   Number of videos: {len(generated_videos)}")
+            for i, video_path in enumerate(generated_videos):
+                print(f"   Video {i + 1}: {video_path}")
+            print(f"   Output path: {concatenated_video_path}")
+
+        return {
+            "video_paths": generated_videos,
+            "output_folder": output_folder,
+            "output_path": concatenated_video_path,
+            "output_format": output_format,
+        }
+
+    def _extract_concatenation_result(self, tool_output: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Extract concatenation result from video concatenation output.
+        """
+        concatenated_video_path = tool_output.get("concatenated_video_path", "")
+        concatenation_info = tool_output.get("concatenation_info", {})
+
+        if concatenated_video_path and os.path.exists(concatenated_video_path):
+            file_size = os.path.getsize(concatenated_video_path)
+            print(f"✅ Concatenated video created: {os.path.basename(concatenated_video_path)}")
+            print(f"📏 File size: {file_size:,} bytes ({file_size / 1024 / 1024:.1f} MB)")
+
+            if concatenation_info:
+                duration = concatenation_info.get("total_duration", 0)
+                frames = concatenation_info.get("frame_count", 0)
+                resolution = f"{concatenation_info.get('width', 0)}x{concatenation_info.get('height', 0)}"
+                fps = concatenation_info.get("fps", 0)
+                print(f"⏱️  Duration: {duration:.2f} seconds")
+                print(f"🎞️  Frames: {frames:,}")
+                print(f"📐 Resolution: {resolution}")
+                print(f"🎬 FPS: {fps}")
+        else:
+            print("❌ Video concatenation failed")
+            if concatenation_info and concatenation_info.get("error_message"):
+                print(f"Error: {concatenation_info['error_message']}")
+
+        # Debug: Print the concatenation output
+        if self.debug:
+            print("\n🔍 DEBUG - Video Concatenation Output:")
+            print(f"   Concatenated video path: {concatenated_video_path}")
+            print(f"   Concatenation info: {concatenation_info}")
+
+        return {
+            "concatenated_video_path": concatenated_video_path,
+            "concatenation_info": concatenation_info,
+        }
+
+    def _execute_video_concatenation(self, step_input: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute video concatenation step.
+
+        Args:
+            step_input: Input data for the concatenation step
+
+        Returns:
+            Dictionary containing concatenation results
+        """
+        video_paths = step_input.get("video_paths", [])
+        output_folder = step_input.get("output_folder", "~/Downloads")
+        output_path = step_input.get("output_path", "")
+
+        if not video_paths:
+            return {
+                "concatenated_video_path": "",
+                "concatenation_info": {
+                    "success": False,
+                    "error_message": "No videos to concatenate"
+                }
+            }
+
+        # Create output directory
+        os.makedirs(output_folder, exist_ok=True)
+
+        # Create a temporary folder with the videos for concatenation
+        import shutil
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Copy videos to temp directory with numbered names to preserve order
+            temp_video_paths = []
+            for i, video_path in enumerate(video_paths):
+                if os.path.exists(video_path):
+                    # Create numbered filename to preserve order
+                    video_file = Path(video_path)
+                    temp_name = f"{i:04d}_{video_file.name}"
+                    temp_path = Path(temp_dir) / temp_name
+                    shutil.copy2(video_path, temp_path)
+                    temp_video_paths.append(str(temp_path))
+
+            if not temp_video_paths:
+                return {
+                    "concatenated_video_path": "",
+                    "concatenation_info": {
+                        "success": False,
+                        "error_message": "No valid video files found"
+                    }
+                }
+
+            # Perform concatenation
+            result = concatenate_videos_from_folder(
+                folder_path=temp_dir,
+                output_path=output_path,
+                sort_by_name=True,  # This will sort by the numbered filenames
+                target_fps=None,  # Use first video's FPS
+                target_resolution=None  # Use first video's resolution
+            )
+
+            return {
+                "concatenated_video_path": result.output_path if result.success else "",
+                "concatenation_info": {
+                    "success": result.success,
+                    "total_duration": result.total_duration,
+                    "frame_count": result.frame_count,
+                    "width": result.width,
+                    "height": result.height,
+                    "fps": result.fps,
+                    "error_message": result.error_message
+                }
+            }
+
     def run(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute the pipeline with the given input.
@@ -477,8 +651,15 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
                         print(f"   {key}: {value}")
 
             # Execute the step
-            executor = PipelineStepExecutor(step)
-            step_output = executor.execute(current_input)
+            if step.name == "video_concatenation":
+                # Handle video concatenation manually
+                step_input = step.transform_input(current_input) if step.transform_input else current_input
+                step_output = self._execute_video_concatenation(step_input)
+                if step.transform_output:
+                    step_output = step.transform_output(step_output)
+            else:
+                executor = PipelineStepExecutor(step)
+                step_output = executor.execute(current_input)
 
             # Debug: Show output from this step
             if self.debug:
@@ -567,9 +748,9 @@ def main():
     parser.add_argument(
         "--extraction-mode",
         choices=["interval", "keyframe"],
-        default="interval",
+        default="keyframe",
         help=(
-            "Extraction mode: 'interval' for regular intervals or " "'keyframe' for scene changes (default: interval)"
+            "Extraction mode: 'interval' for regular intervals or " "'keyframe' for scene changes (default: keyframe)"
         ),
     )
     parser.add_argument(
@@ -590,7 +771,7 @@ def main():
         default=30,
         help=("Minimum frames between keyframes " "(for keyframe mode, default: 30)"),
     )
-    parser.add_argument("--aspect-ratio", default="1:1", help="Aspect ratio for generated images (default: 1:1)")
+    parser.add_argument("--aspect-ratio", default="9:16", help="Aspect ratio for generated images (default: 9:16)")
     parser.add_argument("--output-format", default="mp4", help="Output format for generated videos (default: mp4)")
     parser.add_argument(
         "--image-generator",
@@ -678,7 +859,7 @@ def main():
         # Get video paths from the result
         generated_videos = result.get("generated_video_paths", [])
         if generated_videos:
-            print("📁 Videos stored at:")
+            print("📁 Individual videos stored at:")
             for i, video_path in enumerate(generated_videos):
                 print(f"   Video {i + 1}: {video_path}")
                 # Show relative path if it's in Downloads
@@ -688,6 +869,39 @@ def main():
                     print(f"     📂 Relative to Downloads: {relative_path}")
         else:
             print("❌ No videos generated")
+
+        # Get concatenated video path from the result
+        concatenated_video_path = result.get("concatenated_video_path", "")
+        concatenation_info = result.get("concatenation_info", {})
+
+        if concatenated_video_path and os.path.exists(concatenated_video_path):
+            print("\n🎬 FINAL CONCATENATED VIDEO:")
+            print(f"📁 File: {concatenated_video_path}")
+
+            # Show relative path if it's in Downloads
+            downloads_path = os.path.expanduser("~/Downloads")
+            if concatenated_video_path.startswith(downloads_path):
+                relative_path = os.path.relpath(concatenated_video_path, downloads_path)
+                print(f"📂 Relative to Downloads: {relative_path}")
+
+            # Show video properties
+            if concatenation_info:
+                duration = concatenation_info.get("total_duration", 0)
+                frames = concatenation_info.get("frame_count", 0)
+                resolution = f"{concatenation_info.get('width', 0)}x{concatenation_info.get('height', 0)}"
+                fps = concatenation_info.get("fps", 0)
+                print(f"⏱️  Duration: {duration:.2f} seconds")
+                print(f"🎞️  Frames: {frames:,}")
+                print(f"📐 Resolution: {resolution}")
+                print(f"🎬 FPS: {fps}")
+
+            # Show file size
+            file_size = os.path.getsize(concatenated_video_path)
+            print(f"📏 File size: {file_size:,} bytes ({file_size / 1024 / 1024:.1f} MB)")
+        elif concatenation_info and not concatenation_info.get("success", True):
+            print(f"\n❌ Video concatenation failed: {concatenation_info.get('error_message', 'Unknown error')}")
+        else:
+            print("\n❌ No concatenated video created")
 
         # Get image paths from the result
         generated_images = result.get("generated_image_paths", [])

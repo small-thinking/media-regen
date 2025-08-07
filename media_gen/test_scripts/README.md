@@ -72,4 +72,51 @@ The test will show:
 - This test is not run automatically with unit tests
 - It requires a valid OpenAI API key
 - It makes real API calls and may incur costs
-- The test image should be placed in this folder 
+- The test image should be placed in this folder
+
+## Video Concatenation Test
+
+### Prerequisites
+- OpenCV (cv2) installed
+- Video files for testing
+- Sufficient disk space for output videos
+
+### Running the Test
+
+```bash
+# From the media-regen directory
+uv run python media_gen/test_scripts/test_video_concatenation.py
+```
+
+### What it does
+- Tests the new video concatenation functionality in `video_utils.py`
+- Demonstrates both folder-based and list-based concatenation
+- Shows how to concatenate videos in alphabetical order
+- Handles different video formats and resolutions
+
+### Features Tested
+- **Folder-based concatenation**: Automatically finds and concatenates all videos in a folder
+- **Alphabetical sorting**: Concatenates videos in alphabetical order by filename
+- **Format support**: Handles .mp4, .avi, .mov, .mkv, .webm files
+- **Resolution conversion**: Can resize videos to target resolution
+- **FPS conversion**: Can adjust frame rate of output video
+- **Error handling**: Graceful handling of missing files and processing errors
+
+### Configuration
+Update the test script to point to your video files:
+- `folder_path`: Directory containing video files to concatenate
+- `video_paths`: List of specific video file paths
+- `output_path`: Where to save the concatenated video
+
+### Expected Output
+The test will show:
+- 📁 List of video files found
+- 🔄 Processing progress for each video
+- ✅ Success/failure status
+- 📊 Output video properties (duration, frames, resolution, FPS)
+
+### Notes
+- This test requires actual video files to be present
+- Update the file paths in the script before running
+- Output videos are saved in MP4 format using H.264 codec
+- The test demonstrates both automatic folder scanning and manual file list approaches 
