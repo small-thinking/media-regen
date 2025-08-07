@@ -14,6 +14,7 @@ from typing import Any, ClassVar, Dict, List, Optional
 # Load environment variables from .env file if it exists
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     # dotenv not installed, continue without it
@@ -312,6 +313,7 @@ class VideoUnderstandingTool(BaseTool):
                     print(f"⚠️  Attempt {attempt + 1} failed: {e}")
                     print(f"   Retrying in {retry_delay} seconds...")
                     import time
+
                     time.sleep(retry_delay)
                     retry_delay *= 2  # Exponential backoff
                 else:

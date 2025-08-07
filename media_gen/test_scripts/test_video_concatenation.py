@@ -54,7 +54,7 @@ def main():
         return
 
     # List video files in folder
-    video_extensions = ['.mp4', '.avi', '.mov', '.mkv', '.webm']
+    video_extensions = [".mp4", ".avi", ".mov", ".mkv", ".webm"]
     video_files = []
     for ext in video_extensions:
         video_files.extend(folder.glob(f"*{ext}"))
@@ -98,7 +98,7 @@ def main():
             output_path=str(output_file),
             sort_by_name=True,  # Sort alphabetically
             target_fps=original_fps,  # Use first video's FPS
-            target_resolution=(original_width, original_height)  # Use first video's resolution
+            target_resolution=(original_width, original_height),  # Use first video's resolution
         )
 
         # Display results

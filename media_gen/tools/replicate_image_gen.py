@@ -182,10 +182,7 @@ class ReplicateImageGen(ImageGenerationTool):
         # Return format matching the base class interface
         if len(generated_images) == 1:
             # Single image - return in the expected format
-            return {
-                "image_path": generated_images[0],
-                "generation_info": generation_info[0] if generation_info else {}
-            }
+            return {"image_path": generated_images[0], "generation_info": generation_info[0] if generation_info else {}}
         else:
             # Multiple images - return in pipeline format for batch processing
             return {

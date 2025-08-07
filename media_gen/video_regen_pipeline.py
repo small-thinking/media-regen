@@ -539,10 +539,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
         if not video_paths:
             return {
                 "concatenated_video_path": "",
-                "concatenation_info": {
-                    "success": False,
-                    "error_message": "No videos to concatenate"
-                }
+                "concatenation_info": {"success": False, "error_message": "No videos to concatenate"},
             }
 
         # Create output directory
@@ -567,10 +564,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
             if not temp_video_paths:
                 return {
                     "concatenated_video_path": "",
-                    "concatenation_info": {
-                        "success": False,
-                        "error_message": "No valid video files found"
-                    }
+                    "concatenation_info": {"success": False, "error_message": "No valid video files found"},
                 }
 
             # Perform concatenation
@@ -579,7 +573,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
                 output_path=output_path,
                 sort_by_name=True,  # This will sort by the numbered filenames
                 target_fps=None,  # Use first video's FPS
-                target_resolution=None  # Use first video's resolution
+                target_resolution=None,  # Use first video's resolution
             )
 
             return {
@@ -591,8 +585,8 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
                     "width": result.width,
                     "height": result.height,
                     "fps": result.fps,
-                    "error_message": result.error_message
-                }
+                    "error_message": result.error_message,
+                },
             }
 
     def run(self, input_data: Dict[str, Any]) -> Dict[str, Any]:

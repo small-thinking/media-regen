@@ -652,7 +652,7 @@ def concatenate_videos_from_folder(
         ConcatenationInfo object with process details
     """
     if video_extensions is None:
-        video_extensions = ['.mp4', '.avi', '.mov', '.mkv', '.webm']
+        video_extensions = [".mp4", ".avi", ".mov", ".mkv", ".webm"]
 
     folder = Path(folder_path)
     if not folder.exists():
@@ -665,7 +665,7 @@ def concatenate_videos_from_folder(
             height=0,
             fps=0.0,
             success=False,
-            error_message=f"Folder not found: {folder_path}"
+            error_message=f"Folder not found: {folder_path}",
         )
 
     # Find all video files
@@ -684,7 +684,7 @@ def concatenate_videos_from_folder(
             height=0,
             fps=0.0,
             success=False,
-            error_message=f"No video files found in {folder_path}"
+            error_message=f"No video files found in {folder_path}",
         )
 
     # Sort files alphabetically if requested
@@ -716,7 +716,7 @@ def concatenate_videos_from_folder(
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Initialize video writer
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
         if not out.isOpened():
@@ -776,8 +776,10 @@ def concatenate_videos_from_folder(
         # Calculate final properties
         final_duration = total_frames / fps if fps > 0 else 0
 
-        logger.info(f"Concatenation completed: {len(video_paths)} videos, "
-                    f"{total_frames} frames, {final_duration:.2f}s duration")
+        logger.info(
+            f"Concatenation completed: {len(video_paths)} videos, "
+            f"{total_frames} frames, {final_duration:.2f}s duration"
+        )
 
         return ConcatenationInfo(
             input_videos=video_paths,
@@ -787,7 +789,7 @@ def concatenate_videos_from_folder(
             width=width,
             height=height,
             fps=fps,
-            success=True
+            success=True,
         )
 
     except Exception as e:
@@ -801,7 +803,7 @@ def concatenate_videos_from_folder(
             height=0,
             fps=0.0,
             success=False,
-            error_message=str(e)
+            error_message=str(e),
         )
 
 
@@ -833,7 +835,7 @@ def concatenate_videos(
             height=0,
             fps=0.0,
             success=False,
-            error_message="No video paths provided"
+            error_message="No video paths provided",
         )
 
     # Create a temporary folder structure to use the folder-based function
@@ -865,7 +867,7 @@ def concatenate_videos(
                 height=0,
                 fps=0.0,
                 success=False,
-                error_message="No valid video files found"
+                error_message="No valid video files found",
             )
 
         # Use the folder-based concatenation
@@ -874,7 +876,7 @@ def concatenate_videos(
             output_path=output_path,
             sort_by_name=True,  # This will sort by the numbered filenames
             target_fps=target_fps,
-            target_resolution=target_resolution
+            target_resolution=target_resolution,
         )
 
         # Update the input_videos to show original paths
