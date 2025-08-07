@@ -11,7 +11,7 @@ Usage:
 
 Example:
     python image_regen_pipeline.py --image-path \
-    ./examples/media-gen/integration_tests/test_image.png \
+    media_gen/test_scripts/test_image.png \
     --user-interests "Users like cute cats and capybara"
 """
 

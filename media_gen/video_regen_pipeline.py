@@ -13,7 +13,7 @@ Usage:
 
 Example:
     python video_regen_pipeline.py --video-path \
-    ./examples/media-gen/integration_tests/test_video.mp4 \
+    media_gen/test_scripts/test_video.mp4 \
     --user-interests "Users like cinematic style with dramatic lighting"
 """
 
@@ -458,12 +458,25 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
         output_folder = tool_input.get("output_folder", "~/Downloads")
         output_format = tool_input.get("output_format", "mp4")
 
-        # Save concatenated video directly in the main output folder, not a subfolder
-        concatenated_video_path = f"{output_folder}/final_concatenated_video.{output_format}"
+        # Save concatenated video in the Downloads folder with a descriptive name
+        # output_folder is: ~/Downloads/video_regen_123/generated_videos
+        # parent is: ~/Downloads/video_regen_123 (session folder)
+        # grandparent is: ~/Downloads (base folder)
+        session_folder = os.path.dirname(output_folder)  # video_regen_123 folder
+        base_folder = os.path.dirname(session_folder)  # Downloads folder
+
+        # Create a descriptive filename with timestamp
+        from datetime import datetime
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        session_id = os.path.basename(session_folder)  # video_regen_123
+        concatenated_video_path = f"{base_folder}/video_regen_{timestamp}_{session_id}.{output_format}"
 
         # Display concatenation info
         print("\n🎬 VIDEO CONCATENATION STEP")
-        print(f"📁 Output folder: {output_folder}")
+        print(f"📁 Generated videos folder: {output_folder}")
+        print(f"📁 Final video output: {concatenated_video_path}")
+        print(f"📂 Absolute path: {os.path.abspath(concatenated_video_path)}")
         print(f"🎞️  Concatenating {len(generated_videos)} videos:")
 
         for i, video_path in enumerate(generated_videos):
@@ -483,6 +496,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
             "output_folder": output_folder,
             "output_path": concatenated_video_path,
             "output_format": output_format,
+            "base_folder": base_folder,
         }
 
     def _extract_concatenation_result(self, tool_output: Dict[str, Any]) -> Dict[str, Any]:
@@ -495,6 +509,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
         if concatenated_video_path and os.path.exists(concatenated_video_path):
             file_size = os.path.getsize(concatenated_video_path)
             print(f"✅ Concatenated video created: {os.path.basename(concatenated_video_path)}")
+            print(f"📂 Full path: {os.path.abspath(concatenated_video_path)}")
             print(f"📏 File size: {file_size:,} bytes ({file_size / 1024 / 1024:.1f} MB)")
 
             if concatenation_info:
@@ -535,6 +550,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
         video_paths = step_input.get("video_paths", [])
         output_folder = step_input.get("output_folder", "~/Downloads")
         output_path = step_input.get("output_path", "")
+        base_folder = step_input.get("base_folder", os.path.dirname(os.path.dirname(output_folder)))
 
         if not video_paths:
             return {
@@ -542,8 +558,9 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
                 "concatenation_info": {"success": False, "error_message": "No videos to concatenate"},
             }
 
-        # Create output directory
+        # Create output directories
         os.makedirs(output_folder, exist_ok=True)
+        os.makedirs(base_folder, exist_ok=True)
 
         # Create a temporary folder with the videos for concatenation
         import shutil
@@ -725,10 +742,10 @@ def main():
     parser = argparse.ArgumentParser(description="Regenerate a video based on user interests")
     parser.add_argument(
         "--video-path",
-        default="./examples/media-gen/integration_tests/test_video.mp4",
+        default="media_gen/test_scripts/test_video.mp4",
         help=(
             "Path to the original video file (supports ~ for home directory). "
-            "Default: ./examples/media-gen/integration_tests/test_video.mp4"
+            "Default: media_gen/test_scripts/test_video.mp4"
         ),
     )
     parser.add_argument(
@@ -871,6 +888,7 @@ def main():
         if concatenated_video_path and os.path.exists(concatenated_video_path):
             print("\n🎬 FINAL CONCATENATED VIDEO:")
             print(f"📁 File: {concatenated_video_path}")
+            print(f"📂 Absolute path: {os.path.abspath(concatenated_video_path)}")
 
             # Show relative path if it's in Downloads
             downloads_path = os.path.expanduser("~/Downloads")
@@ -892,6 +910,14 @@ def main():
             # Show file size
             file_size = os.path.getsize(concatenated_video_path)
             print(f"📏 File size: {file_size:,} bytes ({file_size / 1024 / 1024:.1f} MB)")
+
+            # Show command to open file location
+            print(f"🔍 To open file location: open -R '{os.path.abspath(concatenated_video_path)}'")
+
+            # Check if old format file exists and mention it
+            old_file_path = os.path.expanduser("~/final_concatenated_video.mp4")
+            if os.path.exists(old_file_path):
+                print(f"📝 Note: Previous video found at: {old_file_path}")
         elif concatenation_info and not concatenation_info.get("success", True):
             print(f"\n❌ Video concatenation failed: {concatenation_info.get('error_message', 'Unknown error')}")
         else:
@@ -962,6 +988,16 @@ def main():
                 print(f"   Image: {error}")
             for error in video_errors:
                 print(f"   Video: {error}")
+
+        # Final summary with prominent file location
+        if concatenated_video_path and os.path.exists(concatenated_video_path):
+            print("\n" + "=" * 60)
+            print("🎬 YOUR FINAL VIDEO IS READY!")
+            print("=" * 60)
+            print(f"📁 Location: {os.path.abspath(concatenated_video_path)}")
+            print(f"📂 Filename: {os.path.basename(concatenated_video_path)}")
+            print(f"🔍 Open in Finder: open -R '{os.path.abspath(concatenated_video_path)}'")
+            print("=" * 60)
 
         print("=" * 60)
 
