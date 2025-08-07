@@ -18,5 +18,5 @@ __all__ = [
     "ImageUnderstandingTool",
     "ReplicateImageGen",
     "ReplicateVideoGen",
-    "VideoUnderstandingTool"
+    "VideoUnderstandingTool",
 ]

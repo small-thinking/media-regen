@@ -6,7 +6,7 @@ import os
 import sys
 from unittest.mock import Mock, patch
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 try:
     from tools.replicate_image_gen import ReplicateImageGen
@@ -58,7 +58,7 @@ class TestReplicateImageGen:
         for param in expected_params:
             assert param in param_names
 
-    @patch('tools.replicate_image_gen.replicate')
+    @patch("tools.replicate_image_gen.replicate")
     def test_run_success(self, mock_replicate):
         """Test successful image generation."""
         # Mock Replicate response
@@ -70,17 +70,14 @@ class TestReplicateImageGen:
 
         # Create tool and test
         tool = ReplicateImageGen()
-        result = tool.run({
-            "prompt": "Test image",
-            "output_folder": "/tmp"
-        })
+        result = tool.run({"prompt": "Test image", "output_folder": "/tmp"})
 
         # Verify result
         assert result["image_path"] != ""
         assert result["generation_info"]["model"] == "prunaai/wan-2.2-image"
         assert result["generation_info"]["status"] == "generated successfully"
 
-    @patch('tools.replicate_image_gen.replicate')
+    @patch("tools.replicate_image_gen.replicate")
     def test_run_failure(self, mock_replicate):
         """Test image generation failure."""
         # Mock Replicate to raise exception
@@ -88,9 +85,7 @@ class TestReplicateImageGen:
 
         # Create tool and test
         tool = ReplicateImageGen()
-        result = tool.run({
-            "prompt": "Test image"
-        })
+        result = tool.run({"prompt": "Test image"})
 
         # Verify error handling
         assert result["image_path"] == ""
@@ -102,11 +97,8 @@ class TestReplicateImageGen:
         tool = ReplicateImageGen()
 
         # Test with minimal input
-        with patch.object(tool, 'run') as mock_run:
-            mock_run.return_value = {
-                "image_path": "/tmp/test.jpg",
-                "generation_info": {"status": "success"}
-            }
+        with patch.object(tool, "run") as mock_run:
+            mock_run.return_value = {"image_path": "/tmp/test.jpg", "generation_info": {"status": "success"}}
 
             tool.run({"prompt": "Test"})
 
@@ -116,7 +108,7 @@ class TestReplicateImageGen:
             assert call_args["output_format"] == "jpeg"
             assert "~/Downloads" in call_args["output_folder"]
 
-    @patch('tools.replicate_image_gen.replicate')
+    @patch("tools.replicate_image_gen.replicate")
     def test_custom_parameters(self, mock_replicate):
         """Test custom parameter values."""
         # Mock Replicate response
@@ -128,12 +120,7 @@ class TestReplicateImageGen:
 
         # Create tool and test with custom parameters
         tool = ReplicateImageGen()
-        tool.run({
-            "prompt": "Test image",
-            "seed": 12345,
-            "aspect_ratio": "16:9",
-            "model": "stability-ai/sdxl"
-        })
+        tool.run({"prompt": "Test image", "seed": 12345, "aspect_ratio": "16:9", "model": "stability-ai/sdxl"})
 
         # Verify custom values were used
         call_args = mock_replicate.run.call_args

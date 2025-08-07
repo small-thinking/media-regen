@@ -33,13 +33,15 @@ def test_extraction(tool, test_video_path, use_interval=False):
         print("📸 Testing Interval-Based Extraction")
         print("-" * 40)
 
-        result = tool.run({
-            "video_path": str(test_video_path),
-            "user_preference": "cinematic style with dramatic lighting",
-            "extraction_mode": "interval",
-            "screenshot_interval": 10.0,
-            "output_dir": "~/Downloads/video_understanding_interval"
-        })
+        result = tool.run(
+            {
+                "video_path": str(test_video_path),
+                "user_preference": "cinematic style with dramatic lighting",
+                "extraction_mode": "interval",
+                "screenshot_interval": 10.0,
+                "output_dir": "~/Downloads/video_understanding_interval",
+            }
+        )
 
         print("✅ Interval-based analysis completed!")
         print(f"📊 Scenes: {result['metadata']['total_scenes']}")
@@ -50,14 +52,16 @@ def test_extraction(tool, test_video_path, use_interval=False):
         print("🔍 Testing Keyframe-Based Extraction")
         print("-" * 40)
 
-        result = tool.run({
-            "video_path": str(test_video_path),
-            "user_preference": "cinematic style with dramatic lighting",
-            "extraction_mode": "keyframe",
-            "keyframe_threshold": 25.0,
-            "min_interval_frames": 15,
-            "output_dir": "~/Downloads/video_understanding_keyframe"
-        })
+        result = tool.run(
+            {
+                "video_path": str(test_video_path),
+                "user_preference": "cinematic style with dramatic lighting",
+                "extraction_mode": "keyframe",
+                "keyframe_threshold": 25.0,
+                "min_interval_frames": 15,
+                "output_dir": "~/Downloads/video_understanding_keyframe",
+            }
+        )
 
         print("✅ Keyframe-based analysis completed!")
         print(f"📊 Scenes: {result['metadata']['total_scenes']}")
@@ -70,13 +74,9 @@ def test_extraction(tool, test_video_path, use_interval=False):
 def main():
     """Run the integration test."""
     # Parse command line arguments
-    parser = argparse.ArgumentParser(
-        description="Test VideoUnderstandingTool with different extraction methods"
-    )
+    parser = argparse.ArgumentParser(description="Test VideoUnderstandingTool with different extraction methods")
     parser.add_argument(
-        "--interval",
-        action="store_true",
-        help="Use interval-based extraction (default: keyframe-based)"
+        "--interval", action="store_true", help="Use interval-based extraction (default: keyframe-based)"
     )
     args = parser.parse_args()
 
@@ -100,8 +100,7 @@ def main():
 
     if not test_video_path.exists():
         print(f"❌ Error: Test video not found at {test_video_path}")
-        print("Please place a test video file named 'test_video.mp4' in the "
-              "integration_tests directory.")
+        print("Please place a test video file named 'test_video.mp4' in the " "integration_tests directory.")
         return
 
     print(f"✅ Found test video: {test_video_path}")

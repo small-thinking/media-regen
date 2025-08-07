@@ -33,6 +33,7 @@ def _expand_path(path: str) -> Path:
 
 class ExtractionMode(Enum):
     """Extraction modes for video frames."""
+
     INTERVAL = "interval"
     KEYFRAME = "keyframe"
 
@@ -40,6 +41,7 @@ class ExtractionMode(Enum):
 @dataclass
 class ScreenshotInfo:
     """Information about an extracted screenshot."""
+
     frame_number: int
     timestamp: float  # seconds
     timestamp_str: str  # formatted as HH:MM:SS
@@ -49,6 +51,7 @@ class ScreenshotInfo:
 @dataclass
 class KeyFrameInfo:
     """Information about an extracted key frame."""
+
     frame_number: int
     timestamp: float  # seconds
     timestamp_str: str  # formatted as HH:MM:SS
@@ -63,12 +66,7 @@ class VideoExtractor:
     A single interface for extracting frames from videos using different strategies.
     """
 
-    def __init__(
-        self,
-        video_path: str,
-        mode: Union[ExtractionMode, str] = ExtractionMode.INTERVAL,
-        **kwargs
-    ):
+    def __init__(self, video_path: str, mode: Union[ExtractionMode, str] = ExtractionMode.INTERVAL, **kwargs):
         """
         Initialize the video extractor.
 
@@ -108,11 +106,11 @@ class VideoExtractor:
     def _set_mode_parameters(self, **kwargs) -> None:
         """Set parameters based on extraction mode."""
         if self.mode == ExtractionMode.INTERVAL:
-            self.interval_seconds = kwargs.get('interval_seconds', 2.0)
-            self.start_time = kwargs.get('start_time', 0.0)
+            self.interval_seconds = kwargs.get("interval_seconds", 2.0)
+            self.start_time = kwargs.get("start_time", 0.0)
         elif self.mode == ExtractionMode.KEYFRAME:
-            self.threshold = kwargs.get('threshold', 30.0)
-            self.min_interval_frames = kwargs.get('min_interval_frames', 30)
+            self.threshold = kwargs.get("threshold", 30.0)
+            self.min_interval_frames = kwargs.get("min_interval_frames", 30)
 
     def __enter__(self):
         """Context manager entry."""
@@ -131,9 +129,7 @@ class VideoExtractor:
         """Format seconds into HH:MM:SS string."""
         return str(timedelta(seconds=int(seconds)))
 
-    def _calculate_frame_difference(
-        self, frame1: np.ndarray, frame2: np.ndarray
-    ) -> float:
+    def _calculate_frame_difference(self, frame1: np.ndarray, frame2: np.ndarray) -> float:
         """
         Calculate the difference between two frames.
 
@@ -155,9 +151,7 @@ class VideoExtractor:
         return np.mean(diff)
 
     def extract(
-        self,
-        output_dir: Optional[str] = "~/Downloads",
-        filename_prefix: Optional[str] = None
+        self, output_dir: Optional[str] = "~/Downloads", filename_prefix: Optional[str] = None
     ) -> List[Union[ScreenshotInfo, KeyFrameInfo]]:
         """
         Extract frames based on the configured mode.
@@ -179,9 +173,7 @@ class VideoExtractor:
         else:
             raise ValueError(f"Unsupported mode: {self.mode}")
 
-    def _extract_interval(
-        self, output_dir: str, filename_prefix: str
-    ) -> List[ScreenshotInfo]:
+    def _extract_interval(self, output_dir: str, filename_prefix: str) -> List[ScreenshotInfo]:
         """Extract frames at regular intervals."""
         if self.interval_seconds <= 0:
             raise ValueError("Interval must be positive")
@@ -193,10 +185,7 @@ class VideoExtractor:
         start_frame = int(self.start_time * self.fps)
 
         # Handle output directory with tilde expansion
-        output_path = (
-            _expand_path(output_dir) if output_dir
-            else _expand_path("~/Downloads")
-        )
+        output_path = _expand_path(output_dir) if output_dir else _expand_path("~/Downloads")
         output_path.mkdir(parents=True, exist_ok=True)
 
         for frame_num in range(start_frame, self.frame_count, frame_interval):
@@ -210,47 +199,30 @@ class VideoExtractor:
             timestamp_str = self._format_timestamp(timestamp)
 
             screenshot_info = ScreenshotInfo(
-                frame_number=frame_num,
-                timestamp=timestamp,
-                timestamp_str=timestamp_str,
-                file_path=""
+                frame_number=frame_num, timestamp=timestamp, timestamp_str=timestamp_str, file_path=""
             )
 
             # Save screenshot
             timestamp_seconds = int(timestamp)
-            filename = (
-                f"{filename_prefix}_{timestamp_seconds:06d}s_"
-                f"{timestamp_str.replace(':', '-')}.jpg"
-            )
+            filename = f"{filename_prefix}_{timestamp_seconds:06d}s_" f"{timestamp_str.replace(':', '-')}.jpg"
             file_path = output_path / filename
             cv2.imwrite(str(file_path), frame)
             screenshot_info.file_path = str(file_path)
 
             screenshots.append(screenshot_info)
-            logger.debug(
-                f"Extracted screenshot at {timestamp_str} "
-                f"(frame {frame_num})"
-            )
+            logger.debug(f"Extracted screenshot at {timestamp_str} " f"(frame {frame_num})")
 
-        logger.info(
-            f"Extracted {len(screenshots)} screenshots "
-            f"at {self.interval_seconds}s intervals"
-        )
+        logger.info(f"Extracted {len(screenshots)} screenshots " f"at {self.interval_seconds}s intervals")
         return screenshots
 
-    def _extract_keyframes(
-        self, output_dir: str, filename_prefix: str
-    ) -> List[KeyFrameInfo]:
+    def _extract_keyframes(self, output_dir: str, filename_prefix: str) -> List[KeyFrameInfo]:
         """Extract key frames using scene change detection."""
         key_frames = []
         prev_frame = None
         last_key_frame = -self.min_interval_frames
 
         # Handle output directory with tilde expansion
-        output_path = (
-            _expand_path(output_dir) if output_dir
-            else _expand_path("~/Downloads")
-        )
+        output_path = _expand_path(output_dir) if output_dir else _expand_path("~/Downloads")
         output_path.mkdir(parents=True, exist_ok=True)
 
         for frame_num in range(self.frame_count):
@@ -282,15 +254,12 @@ class VideoExtractor:
                         timestamp=timestamp,
                         timestamp_str=timestamp_str,
                         file_path="",
-                        confidence=confidence
+                        confidence=confidence,
                     )
 
                     # Save key frame
                     timestamp_seconds = int(timestamp)
-                    filename = (
-                        f"{filename_prefix}_{timestamp_seconds:06d}s_"
-                        f"{timestamp_str.replace(':', '-')}.jpg"
-                    )
+                    filename = f"{filename_prefix}_{timestamp_seconds:06d}s_" f"{timestamp_str.replace(':', '-')}.jpg"
                     file_path = output_path / filename
                     cv2.imwrite(str(file_path), frame)
                     key_frame_info.file_path = str(file_path)
@@ -299,16 +268,12 @@ class VideoExtractor:
                     last_key_frame = frame_num
 
                     logger.debug(
-                        f"Extracted key frame at {timestamp_str} "
-                        f"(frame {frame_num}, diff: {diff_score:.2f})"
+                        f"Extracted key frame at {timestamp_str} " f"(frame {frame_num}, diff: {diff_score:.2f})"
                     )
 
             prev_frame = frame
 
-        logger.info(
-            f"Extracted {len(key_frames)} key frames "
-            f"with threshold {self.threshold}"
-        )
+        logger.info(f"Extracted {len(key_frames)} key frames " f"with threshold {self.threshold}")
         return key_frames
 
 
@@ -343,9 +308,7 @@ class KeyFrameExtractor:
         self.duration = self.frame_count / self.fps if self.fps > 0 else 0
 
         logger.info(
-            f"Video loaded: {self.fps:.2f} FPS, "
-            f"{self.frame_count} frames, "
-            f"{self.duration:.2f}s duration"
+            f"Video loaded: {self.fps:.2f} FPS, " f"{self.frame_count} frames, " f"{self.duration:.2f}s duration"
         )
 
     def __enter__(self):
@@ -365,9 +328,7 @@ class KeyFrameExtractor:
         """Format seconds into HH:MM:SS string."""
         return str(timedelta(seconds=int(seconds)))
 
-    def _calculate_frame_difference(
-        self, frame1: np.ndarray, frame2: np.ndarray
-    ) -> float:
+    def _calculate_frame_difference(self, frame1: np.ndarray, frame2: np.ndarray) -> float:
         """
         Calculate the difference between two frames.
 
@@ -392,7 +353,7 @@ class KeyFrameExtractor:
         self,
         output_dir: Optional[str] = "~/Downloads",
         filename_prefix: str = "keyframe",
-        min_interval_frames: int = 30
+        min_interval_frames: int = 30,
     ) -> List[KeyFrameInfo]:
         """
         Extract key frames using scene change detection.
@@ -410,10 +371,7 @@ class KeyFrameExtractor:
         last_key_frame = -min_interval_frames
 
         # Handle output directory with tilde expansion
-        output_path = (
-            _expand_path(output_dir) if output_dir
-            else _expand_path("~/Downloads")
-        )
+        output_path = _expand_path(output_dir) if output_dir else _expand_path("~/Downloads")
         output_path.mkdir(parents=True, exist_ok=True)
 
         for frame_num in range(self.frame_count):
@@ -445,15 +403,12 @@ class KeyFrameExtractor:
                         timestamp=timestamp,
                         timestamp_str=timestamp_str,
                         file_path="",
-                        confidence=confidence
+                        confidence=confidence,
                     )
 
                     # Save key frame
                     timestamp_seconds = int(timestamp)
-                    filename = (
-                        f"{filename_prefix}_{timestamp_seconds:06d}s_"
-                        f"{timestamp_str.replace(':', '-')}.jpg"
-                    )
+                    filename = f"{filename_prefix}_{timestamp_seconds:06d}s_" f"{timestamp_str.replace(':', '-')}.jpg"
                     file_path = output_path / filename
                     cv2.imwrite(str(file_path), frame)
                     key_frame_info.file_path = str(file_path)
@@ -462,16 +417,12 @@ class KeyFrameExtractor:
                     last_key_frame = frame_num
 
                     logger.debug(
-                        f"Extracted key frame at {timestamp_str} "
-                        f"(frame {frame_num}, diff: {diff_score:.2f})"
+                        f"Extracted key frame at {timestamp_str} " f"(frame {frame_num}, diff: {diff_score:.2f})"
                     )
 
             prev_frame = frame
 
-        logger.info(
-            f"Extracted {len(key_frames)} key frames "
-            f"with threshold {self.threshold}"
-        )
+        logger.info(f"Extracted {len(key_frames)} key frames " f"with threshold {self.threshold}")
         return key_frames
 
 
@@ -503,9 +454,7 @@ class VideoScreenshotExtractor:
         self.duration = self.frame_count / self.fps if self.fps > 0 else 0
 
         logger.info(
-            f"Video loaded: {self.fps:.2f} FPS, "
-            f"{self.frame_count} frames, "
-            f"{self.duration:.2f}s duration"
+            f"Video loaded: {self.fps:.2f} FPS, " f"{self.frame_count} frames, " f"{self.duration:.2f}s duration"
         )
 
     def __enter__(self):
@@ -530,7 +479,7 @@ class VideoScreenshotExtractor:
         interval_seconds: float = 2.0,
         start_time: float = 0.0,
         output_dir: Optional[str] = "~/Downloads",
-        filename_prefix: str = "screenshot"
+        filename_prefix: str = "screenshot",
     ) -> List[ScreenshotInfo]:
         """
         Extract screenshots at regular time intervals.
@@ -554,10 +503,7 @@ class VideoScreenshotExtractor:
         start_frame = int(start_time * self.fps)
 
         # Handle output directory with tilde expansion
-        output_path = (
-            _expand_path(output_dir) if output_dir
-            else _expand_path("~/Downloads")
-        )
+        output_path = _expand_path(output_dir) if output_dir else _expand_path("~/Downloads")
         output_path.mkdir(parents=True, exist_ok=True)
 
         for frame_num in range(start_frame, self.frame_count, frame_interval):
@@ -571,33 +517,21 @@ class VideoScreenshotExtractor:
             timestamp_str = self._format_timestamp(timestamp)
 
             screenshot_info = ScreenshotInfo(
-                frame_number=frame_num,
-                timestamp=timestamp,
-                timestamp_str=timestamp_str,
-                file_path=""
+                frame_number=frame_num, timestamp=timestamp, timestamp_str=timestamp_str, file_path=""
             )
 
             # Always save screenshots since we have a default output directory
             # Use timestamp-based filename for chronological sorting
             timestamp_seconds = int(timestamp)
-            filename = (
-                f"{filename_prefix}_{timestamp_seconds:06d}s_"
-                f"{timestamp_str.replace(':', '-')}.jpg"
-            )
+            filename = f"{filename_prefix}_{timestamp_seconds:06d}s_" f"{timestamp_str.replace(':', '-')}.jpg"
             file_path = output_path / filename
             cv2.imwrite(str(file_path), frame)
             screenshot_info.file_path = str(file_path)
 
             screenshots.append(screenshot_info)
-            logger.debug(
-                f"Extracted screenshot at {timestamp_str} "
-                f"(frame {frame_num})"
-            )
+            logger.debug(f"Extracted screenshot at {timestamp_str} " f"(frame {frame_num})")
 
-        logger.info(
-            f"Extracted {len(screenshots)} screenshots "
-            f"at {interval_seconds}s intervals"
-        )
+        logger.info(f"Extracted {len(screenshots)} screenshots " f"at {interval_seconds}s intervals")
         return screenshots
 
 
@@ -606,7 +540,7 @@ def extract_screenshots(
     interval_seconds: float = 2.0,
     start_time: float = 0.0,
     output_dir: Optional[str] = "~/Downloads",
-    filename_prefix: str = "screenshot"
+    filename_prefix: str = "screenshot",
 ) -> List[ScreenshotInfo]:
     """
     Convenience function to extract screenshots from a video file.
@@ -626,7 +560,7 @@ def extract_screenshots(
             interval_seconds=interval_seconds,
             start_time=start_time,
             output_dir=output_dir,
-            filename_prefix=filename_prefix
+            filename_prefix=filename_prefix,
         )
 
 
@@ -635,7 +569,7 @@ def extract_key_frames(
     threshold: float = 30.0,
     output_dir: Optional[str] = "~/Downloads",
     filename_prefix: str = "keyframe",
-    min_interval_frames: int = 30
+    min_interval_frames: int = 30,
 ) -> List[KeyFrameInfo]:
     """
     Convenience function to extract key frames from a video file.
@@ -652,9 +586,7 @@ def extract_key_frames(
     """
     with KeyFrameExtractor(video_path, threshold) as extractor:
         return extractor.extract_key_frames(
-            output_dir=output_dir,
-            filename_prefix=filename_prefix,
-            min_interval_frames=min_interval_frames
+            output_dir=output_dir, filename_prefix=filename_prefix, min_interval_frames=min_interval_frames
         )
 
 
@@ -663,7 +595,7 @@ def extract_frames(
     mode: Union[ExtractionMode, str] = ExtractionMode.INTERVAL,
     output_dir: Optional[str] = "~/Downloads",
     filename_prefix: Optional[str] = None,
-    **kwargs
+    **kwargs,
 ) -> List[Union[ScreenshotInfo, KeyFrameInfo]]:
     """
     Unified convenience function to extract frames from a video file.

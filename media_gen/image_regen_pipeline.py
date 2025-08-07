@@ -26,6 +26,7 @@ from typing import Any, Dict
 # Load environment variables from .env file if it exists
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     # dotenv not installed, continue without it
@@ -74,7 +75,7 @@ class MediaRegenerationPipeline(MediaGenerationPipeline):
         image_understanding_tool: ImageUnderstandingTool,
         image_generation_tool: Any,  # BaseTool type
         name: str = "media_regeneration",
-        debug: bool = False
+        debug: bool = False,
     ):
         """
         Initialize the media regeneration pipeline.
@@ -96,13 +97,11 @@ class MediaRegenerationPipeline(MediaGenerationPipeline):
                 input_mapping={
                     "original_image": "images",
                     "system_prompt": "prompt",
-                    "user_preferences": "user_preferences"
+                    "user_preferences": "user_preferences",
                 },
-                output_mapping={
-                    "analysis": "image_analysis"
-                },
+                output_mapping={"analysis": "image_analysis"},
                 transform_input=self._combine_prompt_and_preferences,
-                transform_output=self._extract_analysis
+                transform_output=self._extract_analysis,
             )
         )
 
@@ -115,13 +114,10 @@ class MediaRegenerationPipeline(MediaGenerationPipeline):
                     "image_analysis": "prompt",
                     "output_folder": "output_folder",
                     "aspect_ratio": "aspect_ratio",
-                    "output_format": "output_format"
+                    "output_format": "output_format",
                 },
-                output_mapping={
-                    "image_path": "image_path",
-                    "generation_info": "generation_info"
-                },
-                transform_input=self._use_analysis_as_prompt
+                output_mapping={"image_path": "image_path", "generation_info": "generation_info"},
+                transform_input=self._use_analysis_as_prompt,
             )
         )
 
@@ -131,7 +127,7 @@ class MediaRegenerationPipeline(MediaGenerationPipeline):
         user_interests: str,
         output_folder: str = "~/Downloads",
         aspect_ratio: str = "1:1",
-        output_format: str = "png"
+        output_format: str = "png",
     ) -> Dict[str, Any]:
         """
         Regenerate an image based on the original.
@@ -158,7 +154,7 @@ class MediaRegenerationPipeline(MediaGenerationPipeline):
             "output_folder": output_folder,
             "aspect_ratio": aspect_ratio,
             "output_format": output_format,
-            "return_json": True  # Request JSON output from image understanding
+            "return_json": True,  # Request JSON output from image understanding
         }
 
         # Run pipeline
@@ -166,17 +162,13 @@ class MediaRegenerationPipeline(MediaGenerationPipeline):
 
         return result
 
-    def _combine_prompt_and_preferences(
-        self, tool_input: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _combine_prompt_and_preferences(self, tool_input: Dict[str, Any]) -> Dict[str, Any]:
         """Combine system prompt with user preferences."""
         system_prompt = tool_input.get("prompt", "")
         user_preferences = tool_input.get("user_preferences", "")
 
         if user_preferences:
-            combined_prompt = (
-                f"{system_prompt}\n\n\t {user_preferences}"
-            )
+            combined_prompt = f"{system_prompt}\n\n\t {user_preferences}"
         else:
             combined_prompt = system_prompt
 
@@ -187,9 +179,7 @@ class MediaRegenerationPipeline(MediaGenerationPipeline):
 
         return {**tool_input, "prompt": combined_prompt}
 
-    def _extract_analysis(
-        self, tool_output: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _extract_analysis(self, tool_output: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract analysis text and image generation prompt from JSON output.
 
@@ -220,8 +210,7 @@ class MediaRegenerationPipeline(MediaGenerationPipeline):
         # Try to parse as JSON and extract the image_generation_prompt
         try:
             analysis_json = json.loads(cleaned_analysis)
-            if (isinstance(analysis_json, dict)
-                    and "image_generation_prompt" in analysis_json):
+            if isinstance(analysis_json, dict) and "image_generation_prompt" in analysis_json:
                 extracted_prompt = analysis_json["image_generation_prompt"]
 
                 # Debug: Print the extracted prompt
@@ -233,19 +222,15 @@ class MediaRegenerationPipeline(MediaGenerationPipeline):
             else:
                 # JSON parsed but doesn't have expected structure
                 if self.debug:
-                    print("\n⚠️  DEBUG - JSON parsed but missing "
-                          "image_generation_prompt field")
+                    print("\n⚠️  DEBUG - JSON parsed but missing " "image_generation_prompt field")
                 return {"analysis": cleaned_analysis}
         except json.JSONDecodeError:
             # Not valid JSON, use the cleaned analysis
             if self.debug:
-                print("\n⚠️  DEBUG - Analysis is not valid JSON, "
-                      "using cleaned text")
+                print("\n⚠️  DEBUG - Analysis is not valid JSON, " "using cleaned text")
             return {"analysis": cleaned_analysis}
 
-    def _use_analysis_as_prompt(
-        self, tool_input: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _use_analysis_as_prompt(self, tool_input: Dict[str, Any]) -> Dict[str, Any]:
         """
         Use the image analysis (which already incorporates user preferences)
         as the final generation prompt.
@@ -306,16 +291,12 @@ class MediaRegenerationPipeline(MediaGenerationPipeline):
                 print(f"   {key}: {value}")
 
         # Run the parent pipeline with custom execution
-        self.logger.info(
-            f"Starting pipeline execution with {len(self.steps)} steps"
-        )
+        self.logger.info(f"Starting pipeline execution with {len(self.steps)} steps")
 
         current_input = input_data.copy()
 
         for i, step in enumerate(self.steps):
-            self.logger.info(
-                f"Executing step {i + 1}/{len(self.steps)}: {step.name}"
-            )
+            self.logger.info(f"Executing step {i + 1}/{len(self.steps)}: {step.name}")
 
             # Debug: Show input to this step
             if self.debug:
@@ -354,53 +335,28 @@ class MediaRegenerationPipeline(MediaGenerationPipeline):
 
 def setup_logging():
     """Setup logging."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 
 def main():
     """Main function for command-line execution."""
-    parser = argparse.ArgumentParser(
-        description="Regenerate an image based on user interests"
-    )
+    parser = argparse.ArgumentParser(description="Regenerate an image based on user interests")
     parser.add_argument(
-        "--image-path",
-        required=True,
-        help="Path to the original image file (supports ~ for home directory)"
+        "--image-path", required=True, help="Path to the original image file (supports ~ for home directory)"
     )
+    parser.add_argument("--user-interests", required=True, help="User interests/preferences for regeneration")
     parser.add_argument(
-        "--user-interests",
-        required=True,
-        help="User interests/preferences for regeneration"
+        "--output-folder", default="~/Downloads", help="Output folder for generated image (default: ~/Downloads)"
     )
-    parser.add_argument(
-        "--output-folder",
-        default="~/Downloads",
-        help="Output folder for generated image (default: ~/Downloads)"
-    )
-    parser.add_argument(
-        "--aspect-ratio",
-        default="1:1",
-        help="Aspect ratio for generated image (default: 1:1)"
-    )
-    parser.add_argument(
-        "--output-format",
-        default="png",
-        help="Output format for generated image (default: png)"
-    )
+    parser.add_argument("--aspect-ratio", default="1:1", help="Aspect ratio for generated image (default: 1:1)")
+    parser.add_argument("--output-format", default="png", help="Output format for generated image (default: png)")
     parser.add_argument(
         "--generator",
         choices=["replicate"],
         default="replicate",
-        help="Image generation service to use (default: replicate)"
+        help="Image generation service to use (default: replicate)",
     )
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enable debug output to see prompts used in each step"
-    )
+    parser.add_argument("--debug", action="store_true", help="Enable debug output to see prompts used in each step")
 
     args = parser.parse_args()
 
@@ -424,9 +380,7 @@ def main():
 
         # Create pipeline
         pipeline = MediaRegenerationPipeline(
-            image_understanding_tool=image_understanding,
-            image_generation_tool=image_gen,
-            debug=args.debug
+            image_understanding_tool=image_understanding, image_generation_tool=image_gen, debug=args.debug
         )
 
         # Regenerate image
@@ -435,7 +389,7 @@ def main():
             user_interests=args.user_interests,
             output_folder=args.output_folder,
             aspect_ratio=args.aspect_ratio,
-            output_format=args.output_format
+            output_format=args.output_format,
         )
 
         # Output results
@@ -444,7 +398,7 @@ def main():
         print("=" * 60)
 
         # Get image path from the result
-        generated_path = result.get('image_path', '')
+        generated_path = result.get("image_path", "")
         if generated_path:
             print(f"📁 Image stored at: {generated_path}")
             # Show relative path if it's in Downloads
@@ -456,7 +410,7 @@ def main():
             print("❌ No image path returned")
 
         print("\n🔍 Image Analysis:")
-        analysis = result.get('image_analysis', '')
+        analysis = result.get("image_analysis", "")
         if analysis:
             print(f"   {analysis}")
         else:
@@ -464,8 +418,8 @@ def main():
 
         print("\n🎯 Final Generation Prompt:")
         # Get the final prompt from generation info
-        generation_info = result.get('generation_info', {})
-        final_prompt = generation_info.get('prompt', '')
+        generation_info = result.get("generation_info", {})
+        final_prompt = generation_info.get("prompt", "")
         if final_prompt:
             print(f"   {final_prompt}")
         else:
@@ -474,9 +428,7 @@ def main():
         if generation_info:
             print("\n📊 Generation Info:")
             # Remove the prompt from metadata to avoid duplication
-            filtered_info = {
-                k: v for k, v in generation_info.items() if k != 'prompt'
-            }
+            filtered_info = {k: v for k, v in generation_info.items() if k != "prompt"}
             for key, value in filtered_info.items():
                 print(f"   {key}: {value}")
 

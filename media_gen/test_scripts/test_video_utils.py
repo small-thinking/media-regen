@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 # Add parent directory to path for imports
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from utils.video_utils import VideoScreenshotExtractor, extract_screenshots
 
@@ -57,7 +57,7 @@ def main():
             interval_seconds=5.0,
             start_time=1.0,  # Start from 1 second instead of 0
             output_dir="~/Downloads/polymind_video_screenshots",
-            filename_prefix="test_video_5s"
+            filename_prefix="test_video_5s",
         )
 
         print(f"✅ Extracted {len(screenshots)} screenshots")

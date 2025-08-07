@@ -35,29 +35,29 @@ class ImageGenerationTool(BaseTool, ABC):
                 type="str",
                 required=True,
                 description="Text prompt describing the image to generate",
-                example="A beautiful sunset over a mountain landscape"
+                example="A beautiful sunset over a mountain landscape",
             ),
             Param(
                 name="aspect_ratio",
                 type="str",
                 required=False,
                 description="Aspect ratio of the generated image (e.g., '4:3', '16:9')",
-                example="4:3"
+                example="4:3",
             ),
             Param(
                 name="output_format",
                 type="str",
                 required=False,
                 description="Output format for the generated image",
-                example="jpg"
+                example="jpg",
             ),
             Param(
                 name="output_folder",
                 type="str",
                 required=False,
                 description="Folder path where to save the generated image",
-                example="/path/to/save/images/"
-            )
+                example="/path/to/save/images/",
+            ),
         ]
 
     def output_spec(self) -> List[Param]:
@@ -68,15 +68,15 @@ class ImageGenerationTool(BaseTool, ABC):
                 type="str",
                 required=True,
                 description="Path to the generated image file",
-                example="/path/to/generated_image.jpg"
+                example="/path/to/generated_image.jpg",
             ),
             Param(
                 name="generation_info",
                 type="Dict[str, str]",
                 required=False,
                 description="Additional information about the generation process",
-                example='{"model": "stable-diffusion", "seed": "42"}'
-            )
+                example='{"model": "stable-diffusion", "seed": "42"}',
+            ),
         ]
 
     @abstractmethod
@@ -121,36 +121,36 @@ class VideoGenerationTool(BaseTool, ABC):
                 type="str",
                 required=True,
                 description="Text prompt describing the video to generate",
-                example="A timelapse of a flower blooming in spring"
+                example="A timelapse of a flower blooming in spring",
             ),
             Param(
                 name="num_frames",
                 type="int",
                 required=False,
                 description="Number of frames for the video",
-                example="81"
+                example="81",
             ),
             Param(
                 name="resolution",
                 type="str",
                 required=False,
                 description="Video resolution (e.g., '480p', '720p', '1080p')",
-                example="480p"
+                example="480p",
             ),
             Param(
                 name="image",
                 type="str",
                 required=False,
                 description="URI of an image to use as starting point",
-                example="https://example.com/starting_image.jpg"
+                example="https://example.com/starting_image.jpg",
             ),
             Param(
                 name="aspect_ratio",
                 type="str",
                 required=False,
                 description="Aspect ratio of the generated video (e.g., '9:16', '16:9')",
-                example="9:16"
-            )
+                example="9:16",
+            ),
         ]
 
     def output_spec(self) -> List[Param]:
@@ -161,15 +161,15 @@ class VideoGenerationTool(BaseTool, ABC):
                 type="str",
                 required=True,
                 description="Path to the generated video file",
-                example="/path/to/generated_video.mp4"
+                example="/path/to/generated_video.mp4",
             ),
             Param(
                 name="generation_info",
                 type="Dict[str, str]",
                 required=False,
                 description="Additional information about the generation process",
-                example='{"model": "runway-gen2", "frames": "81"}'
-            )
+                example='{"model": "runway-gen2", "frames": "81"}',
+            ),
         ]
 
     @abstractmethod

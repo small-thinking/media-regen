@@ -39,8 +39,7 @@ class ImageUnderstandingTool(BaseTool):
         api_key = api_key or os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError(
-                "OpenAI API key is required. Set OPENAI_API_KEY environment "
-                "variable or pass api_key parameter."
+                "OpenAI API key is required. Set OPENAI_API_KEY environment " "variable or pass api_key parameter."
             )
 
         # Initialize the parent class with the required fields
@@ -49,11 +48,11 @@ class ImageUnderstandingTool(BaseTool):
             descriptions=[
                 "Analyze images using OpenAI's GPT-4o-mini vision capabilities",
                 "Image understanding and analysis tool",
-                "Vision-based AI tool for image description and analysis"
+                "Vision-based AI tool for image description and analysis",
             ],
             api_key=api_key,
             model=model,
-            **kwargs
+            **kwargs,
         )
 
         # Initialize the OpenAI client
@@ -67,30 +66,29 @@ class ImageUnderstandingTool(BaseTool):
                 type="str",
                 required=False,
                 description="Text prompt describing what to analyze in the image",
-                example="What objects do you see in this image? Describe the scene and any text visible."
+                example="What objects do you see in this image? Describe the scene and any text visible.",
             ),
             Param(
                 name="images",
                 type="List[str]",
                 required=True,
                 description="List of image paths (local files) or URLs to analyze",
-                example='["path/to/image.jpg", "https://example.com/image.png"]'
+                example='["path/to/image.jpg", "https://example.com/image.png"]',
             ),
             Param(
                 name="return_json",
                 type="bool",
                 required=False,
                 description="Whether to return response as JSON format",
-                example="true"
+                example="true",
             ),
             Param(
                 name="max_tokens",
                 type="int",
                 required=False,
                 description="Maximum number of tokens in the response",
-                example="1000"
+                example="1000",
             ),
-
         ]
 
     def output_spec(self) -> List[Param]:
@@ -101,22 +99,22 @@ class ImageUnderstandingTool(BaseTool):
                 type="str",
                 required=True,
                 description="Analysis of the image based on the prompt",
-                example="The image shows a cat sitting on a windowsill..."
+                example="The image shows a cat sitting on a windowsill...",
             ),
             Param(
                 name="confidence",
                 type="float",
                 required=False,
                 description="Confidence score of the analysis (0.0 to 1.0)",
-                example="0.95"
+                example="0.95",
             ),
             Param(
                 name="metadata",
                 type="Dict[str, str]",
                 required=False,
                 description="Additional metadata about the analysis",
-                example='{"model": "gpt-4o-mini", "tokens_used": "150"}'
-            )
+                example='{"model": "gpt-4o-mini", "tokens_used": "150"}',
+            ),
         ]
 
     def _prepare_image_content(self, image_input: str) -> Dict[str, str]:
@@ -131,20 +129,12 @@ class ImageUnderstandingTool(BaseTool):
         """
         if is_valid_image_url(image_input):
             # It's a URL
-            return {
-                "type": "image_url",
-                "image_url": {"url": image_input}
-            }
+            return {"type": "image_url", "image_url": {"url": image_input}}
         else:
             # It's a local file path
             try:
                 base64_image = encode_image_to_base64(image_input)
-                return {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/jpeg;base64,{base64_image}"
-                    }
-                }
+                return {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
             except Exception as e:
                 raise ValueError(f"Failed to process image {image_input}: {e}")
 
@@ -192,7 +182,7 @@ class ImageUnderstandingTool(BaseTool):
                 model=self.model,
                 messages=[{"role": "user", "content": content}],
                 max_tokens=max_tokens,
-                response_format={"type": "json_object"} if return_json else None
+                response_format={"type": "json_object"} if return_json else None,
             )
 
             analysis = response.choices[0].message.content
@@ -218,13 +208,10 @@ class ImageUnderstandingTool(BaseTool):
                 "model": self.model,
                 "tokens_used": str(response.usage.total_tokens),
                 "prompt_tokens": str(response.usage.prompt_tokens),
-                "completion_tokens": str(response.usage.completion_tokens)
+                "completion_tokens": str(response.usage.completion_tokens),
             }
 
-            return {
-                "analysis": analysis,
-                "metadata": metadata
-            }
+            return {"analysis": analysis, "metadata": metadata}
 
         except Exception as e:
             raise RuntimeError(f"Failed to analyze images: {e}")

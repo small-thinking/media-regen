@@ -62,12 +62,7 @@ def main():
     print("🔄 Calling OpenAI API...")
 
     try:
-        result = tool.run({
-            "prompt": prompt,
-            "images": [str(test_image_path)],
-            "return_json": False,
-            "max_tokens": 600
-        })
+        result = tool.run({"prompt": prompt, "images": [str(test_image_path)], "return_json": False, "max_tokens": 600})
 
         print("✅ Analysis completed successfully!")
         print("\n📋 Generated Image Generation Prompt:")

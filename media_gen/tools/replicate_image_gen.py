@@ -38,9 +38,9 @@ class ReplicateImageGen(ImageGenerationTool):
             descriptions=[
                 f"Replicate image generation using {model}",
                 "Generate high-quality images from text prompts",
-                "Supports various models and parameters"
+                "Supports various models and parameters",
             ],
-            **kwargs
+            **kwargs,
         )
         self._model = model
 
@@ -89,6 +89,7 @@ class ReplicateImageGen(ImageGenerationTool):
                 # Generate dynamic image name with timestamp to avoid duplication
                 import os
                 from datetime import datetime
+
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 base_name = f"replicate_generated_image_{timestamp}_{i+1}"
                 image_name = f"{base_name}.{output_format}"
@@ -105,11 +106,7 @@ class ReplicateImageGen(ImageGenerationTool):
                 image_path = f"{output_folder.rstrip('/')}/{image_name}"
 
                 # Prepare input for Replicate
-                replicate_input = {
-                    "prompt": single_prompt,
-                    "aspect_ratio": aspect_ratio,
-                    "quality": quality
-                }
+                replicate_input = {"prompt": single_prompt, "aspect_ratio": aspect_ratio, "quality": quality}
 
                 # Add seed if provided
                 if seed is not None:
@@ -123,21 +120,23 @@ class ReplicateImageGen(ImageGenerationTool):
                 output = replicate.run(model, input=replicate_input)
 
                 # Handle different output types from Replicate
-                if hasattr(output, 'read'):
+                if hasattr(output, "read"):
                     # Output is a FileOutput object
                     with open(image_path, "wb") as file:
                         file.write(output.read())
 
                     generated_images.append(image_path)
-                    generation_info.append({
-                        "model": model,
-                        "prompt": single_prompt,
-                        "seed": seed,
-                        "aspect_ratio": aspect_ratio,
-                        "format": output_format,
-                        "status": "generated successfully",
-                        "replicate_url": None
-                    })
+                    generation_info.append(
+                        {
+                            "model": model,
+                            "prompt": single_prompt,
+                            "seed": seed,
+                            "aspect_ratio": aspect_ratio,
+                            "format": output_format,
+                            "status": "generated successfully",
+                            "replicate_url": None,
+                        }
+                    )
 
                 elif isinstance(output, list) and len(output) > 0:
                     # Output is a list of URLs
@@ -153,15 +152,17 @@ class ReplicateImageGen(ImageGenerationTool):
                         file.write(response.content)
 
                     generated_images.append(image_path)
-                    generation_info.append({
-                        "model": model,
-                        "prompt": single_prompt,
-                        "seed": seed,
-                        "aspect_ratio": aspect_ratio,
-                        "format": output_format,
-                        "status": "generated successfully",
-                        "replicate_url": image_url
-                    })
+                    generation_info.append(
+                        {
+                            "model": model,
+                            "prompt": single_prompt,
+                            "seed": seed,
+                            "aspect_ratio": aspect_ratio,
+                            "format": output_format,
+                            "status": "generated successfully",
+                            "replicate_url": image_url,
+                        }
+                    )
 
                 else:
                     raise ValueError(f"Unexpected output format from Replicate: {type(output)}")
@@ -169,17 +170,11 @@ class ReplicateImageGen(ImageGenerationTool):
             except Exception as e:
                 # Add empty path and error info for failed generation
                 generated_images.append("")
-                generation_info.append({
-                    "model": model,
-                    "prompt": single_prompt,
-                    "error": str(e),
-                    "status": "generation failed"
-                })
+                generation_info.append(
+                    {"model": model, "prompt": single_prompt, "error": str(e), "status": "generation failed"}
+                )
 
-        return {
-            "generated_image_paths": generated_images,
-            "image_generation_info": generation_info
-        }
+        return {"generated_image_paths": generated_images, "image_generation_info": generation_info}
 
     async def _execute(self, input: Message) -> Message:
         """

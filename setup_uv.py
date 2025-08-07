@@ -9,14 +9,10 @@ import sys
 from pathlib import Path
 
 
-def run_command(
-    cmd: list[str], check: bool = True
-) -> subprocess.CompletedProcess:
+def run_command(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
     """Run a command and return the result."""
     print(f"Running: {' '.join(cmd)}")
-    return subprocess.run(
-        cmd, check=check, capture_output=True, text=True
-    )
+    return subprocess.run(cmd, check=check, capture_output=True, text=True)
 
 
 def check_python_version() -> None:
@@ -44,15 +40,15 @@ def check_uv_installed() -> None:
 def create_virtual_environment() -> None:
     """Create virtual environment using uv."""
     venv_path = Path(".venv")
-    
+
     if venv_path.exists():
         print("✓ Virtual environment already exists")
         response = input("Do you want to recreate it? (y/N): ").lower()
-        if response == 'y':
+        if response == "y":
             shutil.rmtree(venv_path)
         else:
             return
-    
+
     print("Creating virtual environment with uv...")
     run_command(["uv", "venv"])
     print("✓ Virtual environment created")
@@ -76,13 +72,13 @@ def setup_environment_file() -> None:
     """Set up the .env file from template."""
     env_file = Path(".env")
     example_file = Path("env.example")
-    
+
     if env_file.exists():
         print("✓ .env file already exists")
         response = input("Do you want to overwrite it? (y/N): ").lower()
-        if response != 'y':
+        if response != "y":
             return
-    
+
     if example_file.exists():
         shutil.copy(example_file, env_file)
         print("✓ Created .env file from template")
@@ -95,25 +91,25 @@ def main() -> None:
     """Main setup function."""
     print("Media Generation Example Setup (uv)")
     print("=" * 40)
-    
+
     # Check Python version
     check_python_version()
-    
+
     # Check uv installation
     check_uv_installed()
-    
+
     # Create virtual environment
     create_virtual_environment()
-    
+
     # Install dependencies
     install_dependencies()
-    
+
     # Install dev dependencies
     install_dev_dependencies()
-    
+
     # Setup environment file
     setup_environment_file()
-    
+
     print("\n✅ Setup complete!")
     print("\nNext steps:")
     print("1. Edit the .env file with your actual API keys")

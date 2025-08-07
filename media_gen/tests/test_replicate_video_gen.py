@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 # Add parent directory to path for imports
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from tools.replicate_video_gen import ReplicateVideoGen
 
@@ -69,12 +69,14 @@ def test_replicate_video_generation():
     print("-" * 50)
 
     try:
-        result = video_gen.run({
-            "image": str(test_image_path),
-            "prompt": test_prompt,
-            "output_folder": "~/Downloads/polymind_video_generation",
-            "output_format": "mp4"
-        })
+        result = video_gen.run(
+            {
+                "image": str(test_image_path),
+                "prompt": test_prompt,
+                "output_folder": "~/Downloads/polymind_video_generation",
+                "output_format": "mp4",
+            }
+        )
 
         if result["video_path"]:
             print("✅ Video generated successfully!")
@@ -111,8 +113,8 @@ def test_with_data_uri():
         return False
 
     # Convert image to data URI
-    with open(test_image_path, 'rb') as file:
-        data = base64.b64encode(file.read()).decode('utf-8')
+    with open(test_image_path, "rb") as file:
+        data = base64.b64encode(file.read()).decode("utf-8")
         data_uri = f"data:application/octet-stream;base64,{data}"
 
     print(f"✅ Converted image to data URI ({len(data_uri)} chars)")
@@ -124,12 +126,14 @@ def test_with_data_uri():
     test_prompt = "A serene landscape with gentle movement and natural lighting"
 
     try:
-        result = video_gen.run({
-            "image": data_uri,
-            "prompt": test_prompt,
-            "output_folder": "~/Downloads/polymind_video_generation",
-            "output_format": "mp4"
-        })
+        result = video_gen.run(
+            {
+                "image": data_uri,
+                "prompt": test_prompt,
+                "output_folder": "~/Downloads/polymind_video_generation",
+                "output_format": "mp4",
+            }
+        )
 
         if result["video_path"]:
             print("✅ Video generated successfully with data URI!")

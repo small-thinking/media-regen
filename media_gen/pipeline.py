@@ -26,16 +26,13 @@ class PipelineStep:
         transform_input: Optional function to transform input before passing to tool
         transform_output: Optional function to transform output after tool execution
     """
+
     name: str
     tool: BaseTool
     input_mapping: Dict[str, str]
     output_mapping: Dict[str, str]
-    transform_input: Optional[
-        Callable[[Dict[str, Any]], Dict[str, Any]]
-    ] = None
-    transform_output: Optional[
-        Callable[[Dict[str, Any]], Dict[str, Any]]
-    ] = None
+    transform_input: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None
+    transform_output: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None
 
 
 class PipelineStepExecutor:
@@ -121,7 +118,7 @@ class MediaGenerationPipeline:
         self.steps: List[PipelineStep] = []
         self.logger = logging.getLogger(f"MediaGenerationPipeline.{name}")
 
-    def add_step(self, step: PipelineStep) -> 'MediaGenerationPipeline':
+    def add_step(self, step: PipelineStep) -> "MediaGenerationPipeline":
         """
         Add a step to the pipeline.
 

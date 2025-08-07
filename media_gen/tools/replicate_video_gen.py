@@ -44,10 +44,9 @@ class ReplicateVideoGen(VideoGenerationTool):
             descriptions=[
                 f"Replicate video generation using {model}",
                 "Generate videos from images and text prompts",
-                "Supports image-to-video generation with WAN 2.2 i2v fast "
-                "model"
+                "Supports image-to-video generation with WAN 2.2 i2v fast " "model",
             ],
-            **kwargs
+            **kwargs,
         )
         self._model = model
 
@@ -64,7 +63,7 @@ class ReplicateVideoGen(VideoGenerationTool):
         image_str = str(image_input)
 
         # If it's already a data URI or URL, return as is
-        if image_str.startswith(('data:', 'http://', 'https://')):
+        if image_str.startswith(("data:", "http://", "https://")):
             return image_str
 
         # If it's a file path, convert to data URI for Replicate API
@@ -73,8 +72,8 @@ class ReplicateVideoGen(VideoGenerationTool):
             raise FileNotFoundError(f"Image file not found: {image_path}")
 
         # Always convert to data URI for Replicate API
-        with open(image_path, 'rb') as file:
-            data = base64.b64encode(file.read()).decode('utf-8')
+        with open(image_path, "rb") as file:
+            data = base64.b64encode(file.read()).decode("utf-8")
             return f"data:application/octet-stream;base64,{data}"
 
     def run(self, input: dict) -> dict:
@@ -100,9 +99,7 @@ class ReplicateVideoGen(VideoGenerationTool):
         # Extract parameters with defaults
         image_input = input.get("image", "")
         prompt = input.get("prompt", "")
-        output_folder = input.get(
-            "output_folder", str(Path.home() / "Downloads")
-        )
+        output_folder = input.get("output_folder", str(Path.home() / "Downloads"))
         output_format = input.get("output_format", "mp4")
         aspect_ratio = input.get("aspect_ratio", "9:16")
         model = input.get("model", self._model)
@@ -126,10 +123,7 @@ class ReplicateVideoGen(VideoGenerationTool):
 
         # Ensure we have matching numbers of images and prompts
         if len(images) != len(prompts):
-            raise ValueError(
-                f"Number of images ({len(images)}) must match number of "
-                f"prompts ({len(prompts)})"
-            )
+            raise ValueError(f"Number of images ({len(images)}) must match number of " f"prompts ({len(prompts)})")
 
         generated_videos = []
         generation_info = []
@@ -145,6 +139,7 @@ class ReplicateVideoGen(VideoGenerationTool):
 
                 # Generate dynamic video name with timestamp to avoid duplication
                 import datetime
+
                 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                 base_name = f"replicate_generated_video_{timestamp}_{i+1}"
                 video_name = f"{base_name}.{output_format}"
@@ -164,11 +159,7 @@ class ReplicateVideoGen(VideoGenerationTool):
                 prepared_image = self._prepare_image_input(single_image)
 
                 # Prepare input for Replicate
-                replicate_input = {
-                    "image": prepared_image,
-                    "prompt": single_prompt,
-                    "aspect_ratio": aspect_ratio
-                }
+                replicate_input = {"image": prepared_image, "prompt": single_prompt, "aspect_ratio": aspect_ratio}
 
                 # Ensure directory exists
                 output_path = Path(video_path)
@@ -176,13 +167,11 @@ class ReplicateVideoGen(VideoGenerationTool):
 
                 # Create prediction in background
                 import time
+
                 start_time = time.time()
 
                 # Create prediction using the model string directly
-                prediction = replicate.predictions.create(
-                    model=model,
-                    input=replicate_input
-                )
+                prediction = replicate.predictions.create(model=model, input=replicate_input)
 
                 print(f"🔄 Started video generation {i+1} (ID: {prediction.id})")
 
@@ -192,10 +181,7 @@ class ReplicateVideoGen(VideoGenerationTool):
                     # Check timeout
                     if time.time() - start_time > timeout:
                         prediction.cancel()
-                        raise TimeoutError(
-                            f"Video generation {i+1} timed out after {timeout} "
-                            "seconds"
-                        )
+                        raise TimeoutError(f"Video generation {i+1} timed out after {timeout} " "seconds")
 
                     # Reload prediction to get latest status
                     prediction.reload()
@@ -203,8 +189,7 @@ class ReplicateVideoGen(VideoGenerationTool):
                     # Print progress updates
                     if time.time() - last_progress_time >= progress_interval:
                         elapsed = int(time.time() - start_time)
-                        print(f"⏱️  Video {i+1} Status: {prediction.status} "
-                              f"(elapsed: {elapsed}s)")
+                        print(f"⏱️  Video {i+1} Status: {prediction.status} " f"(elapsed: {elapsed}s)")
                         if prediction.logs:
                             print(f"📝 Logs: {prediction.logs[-200:]}...")
                         last_progress_time = time.time()
@@ -214,9 +199,7 @@ class ReplicateVideoGen(VideoGenerationTool):
                         print(f"✅ Video generation {i+1} completed!")
                         break
                     elif prediction.status == "failed":
-                        raise Exception(
-                            f"Video generation {i+1} failed: {prediction.error}"
-                        )
+                        raise Exception(f"Video generation {i+1} failed: {prediction.error}")
                     elif prediction.status == "canceled":
                         raise Exception(f"Video generation {i+1} was canceled")
 
@@ -224,23 +207,25 @@ class ReplicateVideoGen(VideoGenerationTool):
                     time.sleep(2)
 
                 # Download the result
-                if hasattr(prediction.output, 'read'):
+                if hasattr(prediction.output, "read"):
                     # Output is a FileOutput object
                     with open(video_path, "wb") as file:
                         file.write(prediction.output.read())
 
                     generated_videos.append(video_path)
-                    generation_info.append({
-                        "model": model,
-                        "prompt": single_prompt,
-                        "image_input": str(single_image),
-                        "aspect_ratio": aspect_ratio,
-                        "format": output_format,
-                        "status": "generated successfully",
-                        "prediction_id": prediction.id,
-                        "replicate_url": None,
-                        "elapsed_time": int(time.time() - start_time)
-                    })
+                    generation_info.append(
+                        {
+                            "model": model,
+                            "prompt": single_prompt,
+                            "image_input": str(single_image),
+                            "aspect_ratio": aspect_ratio,
+                            "format": output_format,
+                            "status": "generated successfully",
+                            "prediction_id": prediction.id,
+                            "replicate_url": None,
+                            "elapsed_time": int(time.time() - start_time),
+                        }
+                    )
 
                 elif isinstance(prediction.output, list) and len(prediction.output) > 0:
                     # Output is a list of URLs
@@ -255,17 +240,19 @@ class ReplicateVideoGen(VideoGenerationTool):
                         file.write(response.content)
 
                     generated_videos.append(video_path)
-                    generation_info.append({
-                        "model": model,
-                        "prompt": single_prompt,
-                        "image_input": str(single_image),
-                        "aspect_ratio": aspect_ratio,
-                        "format": output_format,
-                        "status": "generated successfully",
-                        "prediction_id": prediction.id,
-                        "replicate_url": video_url,
-                        "elapsed_time": int(time.time() - start_time)
-                    })
+                    generation_info.append(
+                        {
+                            "model": model,
+                            "prompt": single_prompt,
+                            "image_input": str(single_image),
+                            "aspect_ratio": aspect_ratio,
+                            "format": output_format,
+                            "status": "generated successfully",
+                            "prediction_id": prediction.id,
+                            "replicate_url": video_url,
+                            "elapsed_time": int(time.time() - start_time),
+                        }
+                    )
 
                 elif isinstance(prediction.output, str):
                     # Output is a direct URL string
@@ -280,39 +267,37 @@ class ReplicateVideoGen(VideoGenerationTool):
                         file.write(response.content)
 
                     generated_videos.append(video_path)
-                    generation_info.append({
-                        "model": model,
-                        "prompt": single_prompt,
-                        "image_input": str(single_image),
-                        "aspect_ratio": aspect_ratio,
-                        "format": output_format,
-                        "status": "generated successfully",
-                        "prediction_id": prediction.id,
-                        "replicate_url": video_url,
-                        "elapsed_time": int(time.time() - start_time)
-                    })
+                    generation_info.append(
+                        {
+                            "model": model,
+                            "prompt": single_prompt,
+                            "image_input": str(single_image),
+                            "aspect_ratio": aspect_ratio,
+                            "format": output_format,
+                            "status": "generated successfully",
+                            "prediction_id": prediction.id,
+                            "replicate_url": video_url,
+                            "elapsed_time": int(time.time() - start_time),
+                        }
+                    )
 
                 else:
-                    raise ValueError(
-                        f"Unexpected output format from Replicate: "
-                        f"{type(prediction.output)}"
-                    )
+                    raise ValueError(f"Unexpected output format from Replicate: " f"{type(prediction.output)}")
 
             except Exception as e:
                 # Add empty path and error info for failed generation
                 generated_videos.append("")
-                generation_info.append({
-                    "model": model,
-                    "prompt": single_prompt if 'single_prompt' in locals() else "",
-                    "image_input": str(single_image) if 'single_image' in locals() else "",
-                    "error": str(e),
-                    "status": "generation failed"
-                })
+                generation_info.append(
+                    {
+                        "model": model,
+                        "prompt": single_prompt if "single_prompt" in locals() else "",
+                        "image_input": str(single_image) if "single_image" in locals() else "",
+                        "error": str(e),
+                        "status": "generation failed",
+                    }
+                )
 
-        return {
-            "generated_video_paths": generated_videos,
-            "video_generation_info": generation_info
-        }
+        return {"generated_video_paths": generated_videos, "video_generation_info": generation_info}
 
     async def _execute(self, input: Message) -> Message:
         """

@@ -8,7 +8,4 @@ Polymind agents.
 
 from .tools import ImageGenerationTool, VideoGenerationTool
 
-__all__ = [
-    "ImageGenerationTool",
-    "VideoGenerationTool"
-]
+__all__ = ["ImageGenerationTool", "VideoGenerationTool"]

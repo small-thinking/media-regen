@@ -18,7 +18,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Add parent directory to path for imports
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 try:
     from tools.replicate_image_gen import ReplicateImageGen
@@ -42,7 +42,7 @@ def main():
         print("Please set your Replicate API token to run integration tests")
         return
 
-    token = os.getenv('REPLICATE_API_TOKEN')
+    token = os.getenv("REPLICATE_API_TOKEN")
     print(f"✅ Replicate API token found: {token[:10]}...")
 
     # Create Downloads directory if it doesn't exist
@@ -72,12 +72,9 @@ def main():
 
     try:
         # Generate the image
-        result = image_gen.run({
-            "prompt": prompt,
-            "seed": 246764,
-            "aspect_ratio": "4:3",
-            "output_folder": str(downloads_dir)
-        })
+        result = image_gen.run(
+            {"prompt": prompt, "seed": 246764, "aspect_ratio": "4:3", "output_folder": str(downloads_dir)}
+        )
 
         print(f"Result: {result}")
 
@@ -89,7 +86,7 @@ def main():
             print(f"🎯 Generation info: {result['generation_info']}")
         else:
             print("❌ Image generation failed")
-            error_msg = result.get('generation_info', {}).get('error', 'Unknown error')
+            error_msg = result.get("generation_info", {}).get("error", "Unknown error")
             print(f"Error: {error_msg}")
 
             # Check for specific error types and provide helpful guidance
@@ -107,6 +104,7 @@ def main():
     except Exception as e:
         print(f"\n❌ Integration test failed with error: {e}")
         import traceback
+
         traceback.print_exc()
 
 

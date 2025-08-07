@@ -27,10 +27,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Add parent directory to path for imports
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 # Load environment variables from .env file
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 from tools.replicate_video_gen import ReplicateVideoGen
 
@@ -96,14 +96,16 @@ def main():
     output_folder = os.path.expanduser("~/Downloads/polymind_video_generation")
 
     try:
-        result = video_gen.run({
-            "image": str(image_path),
-            "prompt": prompt,
-            "output_folder": output_folder,
-            "output_format": "mp4",
-            "timeout": timeout,
-            "progress_interval": progress_interval
-        })
+        result = video_gen.run(
+            {
+                "image": str(image_path),
+                "prompt": prompt,
+                "output_folder": output_folder,
+                "output_format": "mp4",
+                "timeout": timeout,
+                "progress_interval": progress_interval,
+            }
+        )
 
         if result["video_path"]:
             print("✅ Video generated successfully!")

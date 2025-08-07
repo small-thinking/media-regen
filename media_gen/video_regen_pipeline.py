@@ -27,6 +27,7 @@ from typing import Any, Dict, List
 # Load environment variables from .env file if it exists
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     # dotenv not installed, continue without it
@@ -59,7 +60,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
         image_generation_tool: Any,  # BaseTool type
         video_generation_tool: Any,  # BaseTool type
         name: str = "video_regeneration",
-        debug: bool = False
+        debug: bool = False,
     ):
         """
         Initialize the video regeneration pipeline.
@@ -86,15 +87,15 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
                     "screenshot_interval": "screenshot_interval",
                     "keyframe_threshold": "keyframe_threshold",
                     "min_interval_frames": "min_interval_frames",
-                    "output_dir": "output_dir"
+                    "output_dir": "output_dir",
                 },
                 output_mapping={
                     "image_prompts": "image_prompts",
                     "video_prompts": "video_prompts",
                     "scene_descriptions": "scene_descriptions",
                     "screenshot_paths": "screenshot_paths",
-                    "metadata": "video_metadata"
-                }
+                    "metadata": "video_metadata",
+                },
             )
         )
 
@@ -107,14 +108,14 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
                     "image_prompts": "prompt",
                     "output_folder": "output_folder",
                     "aspect_ratio": "aspect_ratio",
-                    "output_format": "output_format"
+                    "output_format": "output_format",
                 },
                 output_mapping={
                     "generated_image_paths": "generated_image_paths",
-                    "image_generation_info": "image_generation_info"
+                    "image_generation_info": "image_generation_info",
                 },
                 transform_input=self._prepare_image_generation,
-                transform_output=self._extract_image_paths
+                transform_output=self._extract_image_paths,
             )
         )
 
@@ -127,14 +128,14 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
                     "generated_image_paths": "image",
                     "video_prompts": "prompt",
                     "output_folder": "output_folder",
-                    "output_format": "output_format"
+                    "output_format": "output_format",
                 },
                 output_mapping={
                     "generated_videos": "generated_video_paths",
-                    "video_generation_info": "video_generation_info"
+                    "video_generation_info": "video_generation_info",
                 },
                 transform_input=self._prepare_video_generation,
-                transform_output=self._extract_video_paths
+                transform_output=self._extract_video_paths,
             )
         )
 
@@ -148,7 +149,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
         keyframe_threshold: float = 30.0,
         min_interval_frames: int = 30,
         aspect_ratio: str = "9:16",
-        output_format: str = "mp4"
+        output_format: str = "mp4",
     ) -> Dict[str, Any]:
         """
         Regenerate a video based on the original.
@@ -187,7 +188,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
             "output_dir": f"{session_folder}/video_analysis",
             "output_folder": session_folder,
             "aspect_ratio": aspect_ratio,
-            "output_format": output_format
+            "output_format": output_format,
         }
 
         # Run pipeline
@@ -195,9 +196,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
 
         return result
 
-    def _prepare_image_generation(
-        self, tool_input: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _prepare_image_generation(self, tool_input: Dict[str, Any]) -> Dict[str, Any]:
         """
         Prepare input for image generation step.
 
@@ -233,12 +232,10 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
             "prompt": image_prompts,
             "output_folder": image_output_folder,
             "aspect_ratio": aspect_ratio,
-            "output_format": output_format
+            "output_format": output_format,
         }
 
-    def _extract_image_paths(
-        self, tool_output: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _extract_image_paths(self, tool_output: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract image paths from image generation output.
 
@@ -268,8 +265,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
         if not valid_images:
             print("\n⚠️  No images generated successfully. Creating fallback images...")
             valid_images = self._create_fallback_images(
-                tool_output.get("prompt", []),
-                tool_output.get("output_folder", "~/Downloads")
+                tool_output.get("prompt", []), tool_output.get("output_folder", "~/Downloads")
             )
 
         # Debug: Print the generated image paths
@@ -283,12 +279,10 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
         return {
             "generated_image_paths": valid_images,
             "image_generation_info": generation_info,
-            "image_generation_errors": errors
+            "image_generation_errors": errors,
         }
 
-    def _create_fallback_images(
-        self, prompts: List[str], output_folder: str
-    ) -> List[str]:
+    def _create_fallback_images(self, prompts: List[str], output_folder: str) -> List[str]:
         """
         Create fallback images when image generation fails.
 
@@ -307,7 +301,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
                 from PIL import Image, ImageDraw, ImageFont
 
                 # Create a simple image with the prompt text
-                img = Image.new('RGB', (512, 512), color='#2c3e50')
+                img = Image.new("RGB", (512, 512), color="#2c3e50")
                 draw = ImageDraw.Draw(img)
 
                 # Try to use a default font, fallback to default if not available
@@ -318,7 +312,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
 
                 # Draw the prompt text
                 text = f"Fallback Image {i + 1}\n{prompt[:100]}..."
-                draw.text((50, 50), text, fill='white', font=font)
+                draw.text((50, 50), text, fill="white", font=font)
 
                 # Save the fallback image
                 fallback_path = f"{output_folder}/fallback_image_{i + 1}.png"
@@ -333,7 +327,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
                 fallback_path = f"{output_folder}/fallback_image_{i + 1}.txt"
                 os.makedirs(os.path.dirname(fallback_path), exist_ok=True)
 
-                with open(fallback_path, 'w') as f:
+                with open(fallback_path, "w") as f:
                     f.write(f"Fallback Image {i + 1}\n")
                     f.write(f"Prompt: {prompt}\n")
                     f.write("This is a fallback file because image generation failed.\n")
@@ -343,9 +337,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
 
         return fallback_images
 
-    def _prepare_video_generation(
-        self, tool_input: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _prepare_video_generation(self, tool_input: Dict[str, Any]) -> Dict[str, Any]:
         """
         Prepare input for video generation step.
 
@@ -365,9 +357,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
         print(f"📁 Output folder: {video_output_folder}")
         print(f"🖼️  Processing {len(generated_images)} images:")
 
-        for i, (image_path, prompt) in enumerate(
-            zip(generated_images, video_prompts)
-        ):
+        for i, (image_path, prompt) in enumerate(zip(generated_images, video_prompts)):
             image_name = os.path.basename(image_path) if image_path else "No image"
             print(f"   Video {i + 1}: {image_name}")
             print(f"   Prompt: {prompt}")
@@ -377,9 +367,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
             print("\n🔍 DEBUG - Video Generation Input:")
             print(f"   Number of images: {len(generated_images)}")
             print(f"   Number of prompts: {len(video_prompts)}")
-            for i, (image_path, prompt) in enumerate(
-                zip(generated_images, video_prompts)
-            ):
+            for i, (image_path, prompt) in enumerate(zip(generated_images, video_prompts)):
                 print(f"   Pair {i + 1}:")
                 print(f"     Image: {image_path}")
                 print(f"     Prompt: {prompt[:100]}...")
@@ -390,12 +378,10 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
             "prompt": video_prompts,
             "output_folder": video_output_folder,
             "output_format": output_format,
-            "aspect_ratio": tool_input.get("aspect_ratio", "9:16")
+            "aspect_ratio": tool_input.get("aspect_ratio", "9:16"),
         }
 
-    def _extract_video_paths(
-        self, tool_output: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _extract_video_paths(self, tool_output: Dict[str, Any]) -> Dict[str, Any]:
         """
         Extract video paths from video generation output.
 
@@ -432,7 +418,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
         return {
             "generated_video_paths": valid_videos,
             "video_generation_info": generation_info,
-            "video_generation_errors": errors
+            "video_generation_errors": errors,
         }
 
     def run(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -470,16 +456,12 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
                     print(f"   {key}: {value}")
 
         # Run the parent pipeline with custom execution
-        self.logger.info(
-            f"Starting pipeline execution with {len(self.steps)} steps"
-        )
+        self.logger.info(f"Starting pipeline execution with {len(self.steps)} steps")
 
         current_input = input_data.copy()
 
         for i, step in enumerate(self.steps):
-            self.logger.info(
-                f"Executing step {i + 1}/{len(self.steps)}: {step.name}"
-            )
+            self.logger.info(f"Executing step {i + 1}/{len(self.steps)}: {step.name}")
 
             # Debug: Show input to this step
             if self.debug:
@@ -532,10 +514,7 @@ class VideoRegenerationPipeline(MediaGenerationPipeline):
 
 def setup_logging():
     """Setup logging."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 
 def check_environment_setup():
@@ -568,81 +547,59 @@ def check_environment_setup():
 
 def main():
     """Main function for command-line execution."""
-    parser = argparse.ArgumentParser(
-        description="Regenerate a video based on user interests"
-    )
+    parser = argparse.ArgumentParser(description="Regenerate a video based on user interests")
     parser.add_argument(
         "--video-path",
         default="./examples/media-gen/integration_tests/test_video.mp4",
-        help=("Path to the original video file (supports ~ for home directory). "
-              "Default: ./examples/media-gen/integration_tests/test_video.mp4")
+        help=(
+            "Path to the original video file (supports ~ for home directory). "
+            "Default: ./examples/media-gen/integration_tests/test_video.mp4"
+        ),
     )
     parser.add_argument(
         "--user-interests",
-        default="Users like cinematic style with dramatic lighting and "
-                "professional video quality",
-        help=("User interests/preferences for regeneration. "
-              "Default: cinematic style with dramatic lighting")
+        default="Users like cinematic style with dramatic lighting and " "professional video quality",
+        help=("User interests/preferences for regeneration. " "Default: cinematic style with dramatic lighting"),
     )
     parser.add_argument(
-        "--output-folder",
-        default="~/Downloads",
-        help="Output folder for generated videos (default: ~/Downloads)"
+        "--output-folder", default="~/Downloads", help="Output folder for generated videos (default: ~/Downloads)"
     )
     parser.add_argument(
         "--extraction-mode",
         choices=["interval", "keyframe"],
         default="interval",
-        help=("Extraction mode: 'interval' for regular intervals or "
-              "'keyframe' for scene changes (default: interval)")
+        help=(
+            "Extraction mode: 'interval' for regular intervals or " "'keyframe' for scene changes (default: interval)"
+        ),
     )
     parser.add_argument(
         "--screenshot-interval",
         type=float,
         default=10.0,
-        help=("Time interval between screenshots in seconds "
-              "(for interval mode, default: 10.0)")
+        help=("Time interval between screenshots in seconds " "(for interval mode, default: 10.0)"),
     )
     parser.add_argument(
         "--keyframe-threshold",
         type=float,
         default=30.0,
-        help=("Threshold for keyframe detection "
-              "(for keyframe mode, default: 30.0)")
+        help=("Threshold for keyframe detection " "(for keyframe mode, default: 30.0)"),
     )
     parser.add_argument(
         "--min-interval-frames",
         type=int,
         default=30,
-        help=("Minimum frames between keyframes "
-              "(for keyframe mode, default: 30)")
+        help=("Minimum frames between keyframes " "(for keyframe mode, default: 30)"),
     )
-    parser.add_argument(
-        "--aspect-ratio",
-        default="1:1",
-        help="Aspect ratio for generated images (default: 1:1)"
-    )
-    parser.add_argument(
-        "--output-format",
-        default="mp4",
-        help="Output format for generated videos (default: mp4)"
-    )
+    parser.add_argument("--aspect-ratio", default="1:1", help="Aspect ratio for generated images (default: 1:1)")
+    parser.add_argument("--output-format", default="mp4", help="Output format for generated videos (default: mp4)")
     parser.add_argument(
         "--image-generator",
         choices=["replicate"],
         default="replicate",
-        help="Image generation service to use (default: replicate)"
+        help="Image generation service to use (default: replicate)",
     )
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enable debug output to see prompts used in each step"
-    )
-    parser.add_argument(
-        "--check-env",
-        action="store_true",
-        help="Check environment setup and exit"
-    )
+    parser.add_argument("--debug", action="store_true", help="Enable debug output to see prompts used in each step")
+    parser.add_argument("--check-env", action="store_true", help="Check environment setup and exit")
 
     args = parser.parse_args()
 
@@ -697,7 +654,7 @@ def main():
             video_understanding_tool=video_understanding,
             image_generation_tool=image_gen,
             video_generation_tool=video_gen,
-            debug=args.debug
+            debug=args.debug,
         )
 
         # Regenerate video
@@ -710,16 +667,16 @@ def main():
             keyframe_threshold=args.keyframe_threshold,
             min_interval_frames=args.min_interval_frames,
             aspect_ratio=args.aspect_ratio,
-            output_format=args.output_format
+            output_format=args.output_format,
         )
 
         # Output results
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("🎬 VIDEO REGENERATION COMPLETE")
-        print("="*60)
+        print("=" * 60)
 
         # Get video paths from the result
-        generated_videos = result.get('generated_video_paths', [])
+        generated_videos = result.get("generated_video_paths", [])
         if generated_videos:
             print("📁 Videos stored at:")
             for i, video_path in enumerate(generated_videos):
@@ -733,43 +690,41 @@ def main():
             print("❌ No videos generated")
 
         # Get image paths from the result
-        generated_images = result.get('generated_image_paths', [])
+        generated_images = result.get("generated_image_paths", [])
         if generated_images:
             print("\n🖼️  Generated images:")
             for i, image_path in enumerate(generated_images):
                 print(f"   Image {i + 1}: {image_path}")
 
         # Get video analysis
-        video_analysis = result.get('video_metadata', {})
+        video_analysis = result.get("video_metadata", {})
         if video_analysis:
             print("\n🔍 Video Analysis:")
-            total_scenes = video_analysis.get('total_scenes', 'Unknown')
+            total_scenes = video_analysis.get("total_scenes", "Unknown")
             print(f"   Total scenes: {total_scenes}")
-            video_duration = video_analysis.get('video_duration', 'Unknown')
+            video_duration = video_analysis.get("video_duration", "Unknown")
             print(f"   Video duration: {video_duration}")
-            extraction_mode = video_analysis.get('extraction_mode', 'Unknown')
+            extraction_mode = video_analysis.get("extraction_mode", "Unknown")
             print(f"   Extraction mode: {extraction_mode}")
 
             if extraction_mode == "keyframe":
-                keyframe_threshold = video_analysis.get('keyframe_threshold', 'Unknown')
-                min_interval_frames = video_analysis.get('min_interval_frames', 'Unknown')
+                keyframe_threshold = video_analysis.get("keyframe_threshold", "Unknown")
+                min_interval_frames = video_analysis.get("min_interval_frames", "Unknown")
                 print(f"   Keyframe threshold: {keyframe_threshold}")
                 print(f"   Min interval frames: {min_interval_frames}")
             else:
-                screenshot_interval = video_analysis.get(
-                    'screenshot_interval', 'Unknown'
-                )
+                screenshot_interval = video_analysis.get("screenshot_interval", "Unknown")
                 print(f"   Screenshot interval: {screenshot_interval}")
 
         # Get scene descriptions
-        scene_descriptions = result.get('scene_descriptions', [])
+        scene_descriptions = result.get("scene_descriptions", [])
         if scene_descriptions:
             print("\n🎭 Scene Descriptions:")
             for i, description in enumerate(scene_descriptions):
                 print(f"   Scene {i + 1}: {description}")
 
         # Get generation info
-        video_generation_info = result.get('video_generation_info', [])
+        video_generation_info = result.get("video_generation_info", [])
         if video_generation_info:
             print("\n📊 Video Generation Info:")
             if isinstance(video_generation_info, list):
@@ -777,7 +732,7 @@ def main():
                     if isinstance(info, dict):
                         print(f"   Video {i + 1}:")
                         for key, value in info.items():
-                            if key == 'prompt':
+                            if key == "prompt":
                                 print(f"     {key}: {str(value)[:100]}...")
                             else:
                                 print(f"     {key}: {value}")
@@ -790,8 +745,8 @@ def main():
                 print(f"   {video_generation_info}")
 
         # Show any errors that occurred
-        image_errors = result.get('image_generation_errors', [])
-        video_errors = result.get('video_generation_errors', [])
+        image_errors = result.get("image_generation_errors", [])
+        video_errors = result.get("video_generation_errors", [])
 
         if image_errors or video_errors:
             print("\n⚠️  Errors encountered:")
@@ -800,7 +755,7 @@ def main():
             for error in video_errors:
                 print(f"   Video: {error}")
 
-        print("="*60)
+        print("=" * 60)
 
     except Exception as e:
         print(f"❌ Error: {e}")
