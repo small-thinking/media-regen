@@ -11,11 +11,20 @@ import json
 import os
 from typing import Any, ClassVar, Dict, List, Optional
 
+# Load environment variables from .env file if it exists
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    # dotenv not installed, continue without it
+    pass
+
 from openai import OpenAI
 from polymind.core.tool import BaseTool, Param
 from polymind.core.utils import encode_image_to_base64
 
-from ..utils.video_utils import ScreenshotInfo, extract_key_frames, extract_screenshots
+from media_gen.utils.video_utils import ScreenshotInfo, extract_key_frames, extract_screenshots
 
 
 class VideoUnderstandingTool(BaseTool):
@@ -82,6 +91,10 @@ class VideoUnderstandingTool(BaseTool):
         # Set the API key
         api_key = api_key or os.getenv("OPENAI_API_KEY")
         if not api_key:
+            print("❌ OpenAI API key not found!")
+            print("   Please check your .env file contains:")
+            print("   OPENAI_API_KEY=your_api_key_here")
+            print("   Or set the environment variable directly")
             raise ValueError(
                 "OpenAI API key is required. Set OPENAI_API_KEY environment " "variable or pass api_key parameter."
             )
@@ -272,26 +285,39 @@ class VideoUnderstandingTool(BaseTool):
                 print(f"Warning: Failed to process screenshot {screenshot.file_path}: {e}")
                 continue
 
-        try:
-            # Call OpenAI API
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "user", "content": content}],
-                max_tokens=2000,
-                response_format={"type": "json_object"},
-            )
+        # Add retry logic for connection issues
+        max_retries = 3
+        retry_delay = 2  # seconds
 
-            analysis = response.choices[0].message.content
-
-            # Parse JSON response
+        for attempt in range(max_retries):
             try:
-                analysis_dict = json.loads(analysis)
-                return analysis_dict.get("scenes", [])
-            except json.JSONDecodeError:
-                raise RuntimeError("Failed to parse OpenAI response as JSON")
+                # Call OpenAI API
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[{"role": "user", "content": content}],
+                    max_tokens=2000,
+                    response_format={"type": "json_object"},
+                )
 
-        except Exception as e:
-            raise RuntimeError(f"Failed to analyze screenshots: {e}")
+                analysis = response.choices[0].message.content
+
+                # Parse JSON response
+                try:
+                    analysis_dict = json.loads(analysis)
+                    return analysis_dict.get("scenes", [])
+                except json.JSONDecodeError:
+                    raise RuntimeError("Failed to parse OpenAI response as JSON")
+
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    print(f"⚠️  Attempt {attempt + 1} failed: {e}")
+                    print(f"   Retrying in {retry_delay} seconds...")
+                    import time
+
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    raise RuntimeError(f"Failed to analyze screenshots after {max_retries} attempts: {e}")
 
     def run(self, input: dict) -> dict:
         """

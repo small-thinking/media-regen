@@ -612,3 +612,273 @@ def extract_frames(
     """
     with VideoExtractor(video_path, mode, **kwargs) as extractor:
         return extractor.extract(output_dir, filename_prefix)
+
+
+@dataclass
+class ConcatenationInfo:
+    """Information about video concatenation process."""
+
+    input_videos: List[str]
+    output_path: str
+    total_duration: float
+    frame_count: int
+    width: int
+    height: int
+    fps: float
+    success: bool
+    error_message: Optional[str] = None
+
+
+def concatenate_videos_from_folder(
+    folder_path: str,
+    output_path: str,
+    video_extensions: Optional[List[str]] = None,
+    sort_by_name: bool = True,
+    target_fps: Optional[float] = None,
+    target_resolution: Optional[tuple[int, int]] = None,
+) -> ConcatenationInfo:
+    """
+    Concatenate videos from a folder in alphabetical order.
+
+    Args:
+        folder_path: Path to folder containing video files
+        output_path: Path for the concatenated output video
+        video_extensions: List of video file extensions to include (default: ['.mp4', '.avi', '.mov', '.mkv'])
+        sort_by_name: Whether to sort files alphabetically by name (default: True)
+        target_fps: Target FPS for output video (uses first video's FPS if None)
+        target_resolution: Target resolution (width, height) for output video (uses first video's resolution if None)
+
+    Returns:
+        ConcatenationInfo object with process details
+    """
+    if video_extensions is None:
+        video_extensions = [".mp4", ".avi", ".mov", ".mkv", ".webm"]
+
+    folder = Path(folder_path)
+    if not folder.exists():
+        return ConcatenationInfo(
+            input_videos=[],
+            output_path=output_path,
+            total_duration=0.0,
+            frame_count=0,
+            width=0,
+            height=0,
+            fps=0.0,
+            success=False,
+            error_message=f"Folder not found: {folder_path}",
+        )
+
+    # Find all video files
+    video_files = []
+    for ext in video_extensions:
+        video_files.extend(folder.glob(f"*{ext}"))
+        video_files.extend(folder.glob(f"*{ext.upper()}"))
+
+    if not video_files:
+        return ConcatenationInfo(
+            input_videos=[],
+            output_path=output_path,
+            total_duration=0.0,
+            frame_count=0,
+            width=0,
+            height=0,
+            fps=0.0,
+            success=False,
+            error_message=f"No video files found in {folder_path}",
+        )
+
+    # Sort files alphabetically if requested
+    if sort_by_name:
+        video_files = sorted(video_files, key=lambda x: x.name.lower())
+
+    video_paths = [str(f) for f in video_files]
+    logger.info(f"Found {len(video_paths)} video files to concatenate")
+
+    try:
+        # Get properties from first video
+        first_cap = cv2.VideoCapture(video_paths[0])
+        if not first_cap.isOpened():
+            raise ValueError(f"Could not open first video: {video_paths[0]}")
+
+        # Use first video's properties as defaults
+        default_fps = first_cap.get(cv2.CAP_PROP_FPS)
+        default_width = int(first_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        default_height = int(first_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        first_cap.release()
+
+        # Use provided targets or defaults
+        fps = target_fps if target_fps is not None else default_fps
+        width = target_resolution[0] if target_resolution else default_width
+        height = target_resolution[1] if target_resolution else default_height
+
+        # Create output directory if needed
+        output_file = Path(output_path)
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        # Initialize video writer
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+
+        if not out.isOpened():
+            raise ValueError(f"Could not create output video writer: {output_path}")
+
+        total_frames = 0
+        total_duration = 0.0
+
+        # Process each video
+        for video_path in video_paths:
+            logger.info(f"Processing video: {Path(video_path).name}")
+
+            cap = cv2.VideoCapture(video_path)
+            if not cap.isOpened():
+                logger.warning(f"Could not open video: {video_path}")
+                continue
+
+            video_fps = cap.get(cv2.CAP_PROP_FPS)
+            video_frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            video_duration = video_frame_count / video_fps if video_fps > 0 else 0
+
+            logger.info(f"  Duration: {video_duration:.2f}s, FPS: {video_fps:.2f}, Frames: {video_frame_count}")
+
+            frame_idx = 0
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+
+                # Resize frame if target resolution is different
+                if frame.shape[1] != width or frame.shape[0] != height:
+                    frame = cv2.resize(frame, (width, height))
+
+                # Handle frame rate differences
+                if video_fps != fps:
+                    # Simple frame dropping/duplication for FPS conversion
+                    if video_fps > fps:
+                        # Drop frames
+                        if frame_idx % int(video_fps / fps) == 0:
+                            out.write(frame)
+                    else:
+                        # Duplicate frames
+                        repeat_count = int(fps / video_fps)
+                        for _ in range(repeat_count):
+                            out.write(frame)
+                else:
+                    out.write(frame)
+
+                frame_idx += 1
+                total_frames += 1
+
+            cap.release()
+            total_duration += video_duration
+
+        out.release()
+
+        # Calculate final properties
+        final_duration = total_frames / fps if fps > 0 else 0
+
+        logger.info(
+            f"Concatenation completed: {len(video_paths)} videos, "
+            f"{total_frames} frames, {final_duration:.2f}s duration"
+        )
+
+        return ConcatenationInfo(
+            input_videos=video_paths,
+            output_path=output_path,
+            total_duration=final_duration,
+            frame_count=total_frames,
+            width=width,
+            height=height,
+            fps=fps,
+            success=True,
+        )
+
+    except Exception as e:
+        logger.error(f"Error during video concatenation: {str(e)}")
+        return ConcatenationInfo(
+            input_videos=video_paths,
+            output_path=output_path,
+            total_duration=0.0,
+            frame_count=0,
+            width=0,
+            height=0,
+            fps=0.0,
+            success=False,
+            error_message=str(e),
+        )
+
+
+def concatenate_videos(
+    video_paths: List[str],
+    output_path: str,
+    target_fps: Optional[float] = None,
+    target_resolution: Optional[tuple[int, int]] = None,
+) -> ConcatenationInfo:
+    """
+    Concatenate a list of video files.
+
+    Args:
+        video_paths: List of video file paths to concatenate
+        output_path: Path for the concatenated output video
+        target_fps: Target FPS for output video (uses first video's FPS if None)
+        target_resolution: Target resolution (width, height) for output video (uses first video's resolution if None)
+
+    Returns:
+        ConcatenationInfo object with process details
+    """
+    if not video_paths:
+        return ConcatenationInfo(
+            input_videos=[],
+            output_path=output_path,
+            total_duration=0.0,
+            frame_count=0,
+            width=0,
+            height=0,
+            fps=0.0,
+            success=False,
+            error_message="No video paths provided",
+        )
+
+    # Create a temporary folder structure to use the folder-based function
+    import shutil
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Copy videos to temp directory with numbered names to preserve order
+        temp_video_paths = []
+        for i, video_path in enumerate(video_paths):
+            video_file = Path(video_path)
+            if not video_file.exists():
+                logger.warning(f"Video file not found: {video_path}")
+                continue
+
+            # Create numbered filename to preserve order
+            temp_name = f"{i:04d}_{video_file.name}"
+            temp_path = Path(temp_dir) / temp_name
+            shutil.copy2(video_path, temp_path)
+            temp_video_paths.append(str(temp_path))
+
+        if not temp_video_paths:
+            return ConcatenationInfo(
+                input_videos=video_paths,
+                output_path=output_path,
+                total_duration=0.0,
+                frame_count=0,
+                width=0,
+                height=0,
+                fps=0.0,
+                success=False,
+                error_message="No valid video files found",
+            )
+
+        # Use the folder-based concatenation
+        result = concatenate_videos_from_folder(
+            folder_path=temp_dir,
+            output_path=output_path,
+            sort_by_name=True,  # This will sort by the numbered filenames
+            target_fps=target_fps,
+            target_resolution=target_resolution,
+        )
+
+        # Update the input_videos to show original paths
+        result.input_videos = video_paths
+        return result

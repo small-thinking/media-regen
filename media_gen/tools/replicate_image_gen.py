@@ -181,16 +181,13 @@ class ReplicateImageGen(ImageGenerationTool):
 
         # Return format matching the base class interface
         if len(generated_images) == 1:
+            # Single image - return in the expected format
             return {"image_path": generated_images[0], "generation_info": generation_info[0] if generation_info else {}}
         else:
-            # For multiple images, return the first one as primary and include all info
+            # Multiple images - return in pipeline format for batch processing
             return {
-                "image_path": generated_images[0] if generated_images else "",
-                "generation_info": {
-                    "all_images": generated_images,
-                    "all_info": generation_info,
-                    "count": len(generated_images),
-                },
+                "generated_image_paths": generated_images,
+                "image_generation_info": generation_info,
             }
 
     async def _execute(self, input: Message) -> Message:
