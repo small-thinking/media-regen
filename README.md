@@ -92,6 +92,11 @@ uv run python media_gen/video_regen_pipeline.py --video-path video.mp4 --user-in
 - `--output-folder`: Output directory (default: `~/Downloads`)
 - `--screenshot-interval`: Seconds between screenshots (default: `2.0`)
 
+**Output:**
+- Individual generated videos are saved in `~/Downloads/video_regen_[timestamp]/generated_videos/`
+- Final concatenated video is saved in `~/Downloads/video_regen_[timestamp]_[session_id].mp4`
+- The pipeline provides clear logging showing the exact file locations
+
 ## Development
 
 ### Adding Dependencies
