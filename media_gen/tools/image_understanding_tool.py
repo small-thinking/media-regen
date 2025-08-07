@@ -11,7 +11,6 @@ import os
 from typing import Any, Dict, List, Optional
 
 from openai import OpenAI
-
 from polymind.core.tool import BaseTool, Param
 from polymind.core.utils import encode_image_to_base64, is_valid_image_url
 

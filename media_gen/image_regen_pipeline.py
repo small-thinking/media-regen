@@ -20,9 +20,8 @@ import json
 import logging
 import os
 import sys
-from typing import Any, Dict
-
 from pathlib import Path
+from typing import Any, Dict
 
 # Load environment variables from .env file if it exists
 try:

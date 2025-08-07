@@ -6,9 +6,9 @@ Replicate's API with various image generation models. It integrates seamlessly
 with the Polymind framework and supports various image generation parameters.
 """
 
-import replicate
 from pathlib import Path
 
+import replicate
 from polymind.core.message import Message
 
 from .media_gen_tool_base import ImageGenerationTool

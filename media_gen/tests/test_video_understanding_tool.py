@@ -9,9 +9,8 @@ coherent image generation prompts.
 import os
 import sys
 import unittest
-from unittest.mock import Mock, patch
-
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 # Add the parent directory to the path
 sys.path.insert(0, str(Path(__file__).parent.parent))

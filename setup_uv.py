@@ -3,9 +3,9 @@
 Setup script for Media Generation Example using uv.
 Handles virtual environment creation and environment configuration.
 """
+import shutil
 import subprocess
 import sys
-import shutil
 from pathlib import Path
 
 

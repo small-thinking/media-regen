@@ -9,11 +9,11 @@ import os
 from dataclasses import dataclass
 from datetime import timedelta
 from enum import Enum
+from pathlib import Path
 from typing import List, Optional, Union
 
 import cv2
 import numpy as np
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
 

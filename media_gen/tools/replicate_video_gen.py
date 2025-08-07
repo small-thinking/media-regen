@@ -9,12 +9,11 @@ text prompts.
 
 import base64
 import os
+from pathlib import Path
 from typing import Union
 
 import replicate
 import requests
-from pathlib import Path
-
 from polymind.core.message import Message
 
 from .media_gen_tool_base import VideoGenerationTool

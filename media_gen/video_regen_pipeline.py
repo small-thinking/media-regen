@@ -21,9 +21,8 @@ import logging
 import os
 import sys
 import time
-from typing import Any, Dict, List
-
 from pathlib import Path
+from typing import Any, Dict, List
 
 # Load environment variables from .env file if it exists
 try:

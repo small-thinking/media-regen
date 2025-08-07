@@ -12,14 +12,10 @@ import os
 from typing import Any, ClassVar, Dict, List, Optional
 
 from openai import OpenAI
-from ..utils.video_utils import (
-    ScreenshotInfo, 
-    extract_key_frames, 
-    extract_screenshots
-)
-
 from polymind.core.tool import BaseTool, Param
 from polymind.core.utils import encode_image_to_base64
+
+from ..utils.video_utils import ScreenshotInfo, extract_key_frames, extract_screenshots
 
 
 class VideoUnderstandingTool(BaseTool):
