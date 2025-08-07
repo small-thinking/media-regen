@@ -1,7 +1,7 @@
 """
 Media Regeneration Framework
 
-A comprehensive AI-powered media generation and understanding framework 
+A comprehensive AI-powered media generation and understanding framework
 for images and videos.
 """
 

@@ -8,7 +8,7 @@ the framework's tool system.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List
+from typing import List
 
 from polymind.core.tool import BaseTool, Param
 
@@ -16,12 +16,12 @@ from polymind.core.tool import BaseTool, Param
 class ImageGenerationTool(BaseTool, ABC):
     """
     Abstract base class for image generation tools within the Polymind framework.
-    
+
     This class defines the interface that all image generation tools must
     implement. It inherits from BaseTool to integrate seamlessly with
     Polymind's agent system, allowing AI agents to generate images as part
     of their workflow.
-    
+
     Implementations should provide concrete image generation capabilities
     using various APIs or models (e.g., DALL-E, Stable Diffusion,
     Midjourney).
@@ -35,29 +35,29 @@ class ImageGenerationTool(BaseTool, ABC):
                 type="str",
                 required=True,
                 description="Text prompt describing the image to generate",
-                example="A beautiful sunset over a mountain landscape"
+                example="A beautiful sunset over a mountain landscape",
             ),
             Param(
                 name="aspect_ratio",
                 type="str",
                 required=False,
                 description="Aspect ratio of the generated image (e.g., '4:3', '16:9')",
-                example="4:3"
+                example="4:3",
             ),
             Param(
                 name="output_format",
                 type="str",
                 required=False,
                 description="Output format for the generated image",
-                example="jpg"
+                example="jpg",
             ),
             Param(
                 name="output_folder",
                 type="str",
                 required=False,
                 description="Folder path where to save the generated image",
-                example="/path/to/save/images/"
-            )
+                example="/path/to/save/images/",
+            ),
         ]
 
     def output_spec(self) -> List[Param]:
@@ -68,29 +68,29 @@ class ImageGenerationTool(BaseTool, ABC):
                 type="str",
                 required=True,
                 description="Path to the generated image file",
-                example="/path/to/generated_image.jpg"
+                example="/path/to/generated_image.jpg",
             ),
             Param(
                 name="generation_info",
                 type="Dict[str, str]",
                 required=False,
                 description="Additional information about the generation process",
-                example='{"model": "stable-diffusion", "seed": "42"}'
-            )
+                example='{"model": "stable-diffusion", "seed": "42"}',
+            ),
         ]
 
     @abstractmethod
     def run(self, input: dict) -> dict:
         """
         Generate an image based on the provided input parameters.
-        
+
         Args:
             input (dict): Dictionary containing generation parameters such as:
                 - prompt: Text description of the desired image
                 - aspect_ratio: Image aspect ratio (optional, default: "4:3")
                 - output_format: Output format (optional, default: "jpg")
                 - output_folder: Folder path to save the image (optional)
-        
+
         Returns:
             dict: Dictionary containing:
                 - image_path: Path to the generated image file
@@ -102,12 +102,12 @@ class ImageGenerationTool(BaseTool, ABC):
 class VideoGenerationTool(BaseTool, ABC):
     """
     Abstract base class for video generation tools within the Polymind framework.
-    
+
     This class defines the interface that all video generation tools must
     implement. It inherits from BaseTool to integrate seamlessly with
     Polymind's agent system, allowing AI agents to generate videos as part
     of their workflow.
-    
+
     Implementations should provide concrete video generation capabilities
     using various APIs or models (e.g., Runway, Pika Labs, or other video
     generation services).
@@ -118,39 +118,39 @@ class VideoGenerationTool(BaseTool, ABC):
         return [
             Param(
                 name="prompt",
-                type="str", 
+                type="str",
                 required=True,
                 description="Text prompt describing the video to generate",
-                example="A timelapse of a flower blooming in spring"
+                example="A timelapse of a flower blooming in spring",
             ),
             Param(
                 name="num_frames",
                 type="int",
                 required=False,
                 description="Number of frames for the video",
-                example="81"
+                example="81",
             ),
             Param(
                 name="resolution",
                 type="str",
                 required=False,
                 description="Video resolution (e.g., '480p', '720p', '1080p')",
-                example="480p"
+                example="480p",
             ),
             Param(
                 name="image",
                 type="str",
                 required=False,
                 description="URI of an image to use as starting point",
-                example="https://example.com/starting_image.jpg"
+                example="https://example.com/starting_image.jpg",
             ),
             Param(
                 name="aspect_ratio",
                 type="str",
                 required=False,
                 description="Aspect ratio of the generated video (e.g., '9:16', '16:9')",
-                example="9:16"
-            )
+                example="9:16",
+            ),
         ]
 
     def output_spec(self) -> List[Param]:
@@ -161,22 +161,22 @@ class VideoGenerationTool(BaseTool, ABC):
                 type="str",
                 required=True,
                 description="Path to the generated video file",
-                example="/path/to/generated_video.mp4"
+                example="/path/to/generated_video.mp4",
             ),
             Param(
                 name="generation_info",
                 type="Dict[str, str]",
                 required=False,
                 description="Additional information about the generation process",
-                example='{"model": "runway-gen2", "frames": "81"}'
-            )
+                example='{"model": "runway-gen2", "frames": "81"}',
+            ),
         ]
 
     @abstractmethod
     def run(self, input: dict) -> dict:
         """
         Generate a video based on the provided input parameters.
-        
+
         Args:
             input (dict): Dictionary containing generation parameters such as:
                 - prompt: Text description of the desired video
@@ -184,10 +184,10 @@ class VideoGenerationTool(BaseTool, ABC):
                 - resolution: Video resolution (optional, default: "480p")
                 - image: URI of starting image (optional)
                 - aspect_ratio: Video aspect ratio (optional, default: "9:16")
-        
+
         Returns:
             dict: Dictionary containing:
                 - video_path: Path to the generated video file
                 - generation_info: Additional metadata (optional)
         """
-        pass 
+        pass

@@ -2,84 +2,146 @@
 
 AI-powered image and video generation/understanding framework.
 
-## Quick Start
+## Setup
 
-1. **Setup environment:**
+## Setup
+
+1. **Install uv:**
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   # or with pip: pip install uv
+   ```
+
+2. **Setup with uv:**
+   ```bash
+   python setup_uv.py
+   ```
+
+3. **Or manually with uv:**
+   ```bash
+   uv venv
+   uv sync
+   uv sync --extra dev  # For development dependencies
+   cp env.example .env
+   ```
+
+4. **Configure API keys:**
    ```bash
    cp env.example .env
+   # Add your OPENAI_API_KEY to .env
    # Add your REPLICATE_API_TOKEN to .env
-   pip install -r requirements.txt
    ```
-
-2. **Generate images:**
-   ```bash
-   python media-gen/image_regen_pipeline.py --image-path photo.jpg --user-interests "make it more vibrant"
-   ```
-
-## Features
-
-- **Image Understanding**: Analyze images with AI vision
-- **Image Generation**: Create new images via Replicate
-- **Video Understanding**: Extract and analyze video scenes
-- **Video Generation**: Generate videos from images and prompts
 
 ## Usage
 
-### Image Regeneration
+### Running with uv
+
+Use `uv run` to execute commands in the virtual environment:
+
 ```bash
-python media-gen/image_regen_pipeline.py \
-  --image-path ~/Pictures/photo.jpg \
-  --user-interests "convert to watercolor style" \
-  --output-folder ~/Desktop \
-  --aspect-ratio 16:9
+# Run any Python script
+uv run python media_gen/image_regen_pipeline.py --image-path photo.jpg --user-interests "basketball, kapybara"
+
+# Run tests
+uv run pytest
+
+# Run with specific Python version
+uv run --python 3.11 python your_script.py
+```
+
+### Image Regeneration Pipeline
+
+Regenerate images with AI analysis and user preferences:
+
+```bash
+uv run python media_gen/image_regen_pipeline.py --image-path photo.jpg --user-interests "basketball, kapybara"
 ```
 
 **Options:**
-- `--image-path`: Input image (required)
+- `--image-path`: Input image path (required)
 - `--user-interests`: Regeneration preferences (required)
 - `--output-folder`: Output directory (default: `~/Downloads`)
 - `--aspect-ratio`: Image ratio (default: `1:1`)
 - `--output-format`: Format (default: `png`)
 - `--debug`: Show detailed prompts
 
-### Video Understanding
-```python
-from tools.video_understanding_tool import VideoUnderstandingTool
+**Examples:**
+```bash
+# Basic regeneration
+uv run python media_gen/image_regen_pipeline.py --image-path landscape.jpg --user-interests "vintage style, steam punk"
 
-video_tool = VideoUnderstandingTool()
-result = video_tool.run({
-    "video_path": "video.mp4",
-    "user_preference": "cinematic lighting",
-    "screenshot_interval": 2.0
-})
+# Custom output and aspect ratio
+uv run python media_gen/image_regen_pipeline.py \
+  --image-path ~/Pictures/photo.jpg \
+  --user-interests "make it modern and professional" \
+  --output-folder ~/Desktop \
+  --aspect-ratio 16:9
 ```
 
-### Video Generation
-```python
-from tools.replicate_video_gen import ReplicateVideoGen
+### Video Regeneration Pipeline
 
-video_gen = ReplicateVideoGen()
-result = video_gen.run({
-    "image": "image.jpg",
-    "prompt": "serene landscape with gentle movement"
-})
-```
-
-## Testing
+Process videos with AI understanding and generation:
 
 ```bash
-# Test image generation
-python media-gen/image_regen_pipeline.py --image-path media-gen/test_scripts/test_image.png --user-interests "enhance visual appeal"
-
-# Test video tools
-python media-gen/test_scripts/test_video_understanding_tool.py
-python media-gen/test_scripts/test_replicate_video_gen.py
+uv run python media_gen/video_regen_pipeline.py --video-path video.mp4 --user-interests "basketball, kapybara"
 ```
 
-## Architecture
+**Options:**
+- `--video-path`: Input video path (required)
+- `--user-interests`: Processing preferences (required)
+- `--output-folder`: Output directory (default: `~/Downloads`)
+- `--screenshot-interval`: Seconds between screenshots (default: `2.0`)
 
-- **`pipeline.py`**: Core pipeline infrastructure
-- **`image_regen_pipeline.py`**: Image regeneration CLI
-- **`video_regen_pipeline.py`**: Video processing pipeline
-- **`tools/`**: Media generation and understanding tools
-- **`utils/`**: Utility functions for video processing
+## Development
+
+### Adding Dependencies
+
+```bash
+# Add a new dependency
+uv add package-name
+
+# Add a development dependency
+uv add --dev package-name
+
+# Update dependencies
+uv sync
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run with coverage
+uv run pytest --cov=media_gen
+
+# Run specific test file
+uv run pytest media_gen/tests/test_image_understanding.py
+```
+
+### Code Quality
+
+```bash
+# Format code
+uv run black .
+
+# Sort imports
+uv run isort .
+
+# Type checking
+uv run mypy media_gen/
+
+# Linting
+uv run flake8 media_gen/
+```
+
+## Extensibility
+
+The framework is designed for easy extension. You can create custom tools for:
+
+- **Arbitrary image generation models** (Stable Diffusion, DALL-E, etc.)
+- **Video generation models** (Runway, Pika Labs, etc.)
+- **Custom analysis tools** (scene detection, content filtering, etc.)
+
+Tools follow the base class in `media_gen/tools/media_gen_tool_base.py` for consistent integration.
