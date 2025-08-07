@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """
-Setup script for Media Generation Example (Linux).
+Setup script for Media Generation Example using uv.
 Handles virtual environment creation and environment configuration.
 """
 import subprocess
 import sys
-
 import shutil
 from pathlib import Path
 
@@ -29,9 +28,22 @@ def check_python_version() -> None:
     print(f"✓ Python {version} detected")
 
 
+def check_uv_installed() -> None:
+    """Check if uv is installed."""
+    try:
+        run_command(["uv", "--version"])
+        print("✓ uv is installed")
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        print("✗ uv is not installed")
+        print("Please install uv first:")
+        print("  curl -LsSf https://astral.sh/uv/install.sh | sh")
+        print("  # or with pip: pip install uv")
+        sys.exit(1)
+
+
 def create_virtual_environment() -> None:
-    """Create virtual environment."""
-    venv_path = Path("venv")
+    """Create virtual environment using uv."""
+    venv_path = Path(".venv")
     
     if venv_path.exists():
         print("✓ Virtual environment already exists")
@@ -41,21 +53,23 @@ def create_virtual_environment() -> None:
         else:
             return
     
-    print("Creating virtual environment...")
-    run_command([sys.executable, "-m", "venv", "venv"])
+    print("Creating virtual environment with uv...")
+    run_command(["uv", "venv"])
     print("✓ Virtual environment created")
 
 
-def install_requirements() -> None:
-    """Install requirements in the virtual environment."""
-    pip_path = "venv/bin/pip"
-    
-    print("Upgrading pip...")
-    run_command([pip_path, "install", "--upgrade", "pip"])
-    
-    print("Installing requirements...")
-    run_command([pip_path, "install", "-r", "requirements.txt"])
-    print("✓ Requirements installed")
+def install_dependencies() -> None:
+    """Install dependencies using uv."""
+    print("Installing dependencies with uv...")
+    run_command(["uv", "sync"])
+    print("✓ Dependencies installed")
+
+
+def install_dev_dependencies() -> None:
+    """Install development dependencies."""
+    print("Installing development dependencies...")
+    run_command(["uv", "sync", "--extra", "dev"])
+    print("✓ Development dependencies installed")
 
 
 def setup_environment_file() -> None:
@@ -79,17 +93,23 @@ def setup_environment_file() -> None:
 
 def main() -> None:
     """Main setup function."""
-    print("Media Generation Example Setup")
+    print("Media Generation Example Setup (uv)")
     print("=" * 40)
     
     # Check Python version
     check_python_version()
     
+    # Check uv installation
+    check_uv_installed()
+    
     # Create virtual environment
     create_virtual_environment()
     
-    # Install requirements
-    install_requirements()
+    # Install dependencies
+    install_dependencies()
+    
+    # Install dev dependencies
+    install_dev_dependencies()
     
     # Setup environment file
     setup_environment_file()
@@ -98,12 +118,21 @@ def main() -> None:
     print("\nNext steps:")
     print("1. Edit the .env file with your actual API keys")
     print("2. Activate the virtual environment:")
-    print("   source venv/bin/activate")
-    print("3. Run 'python example_usage.py' to test the setup")
+    print("   source .venv/bin/activate")
+    print("3. Or use uv to run commands directly:")
+    print("   uv run python example_usage.py")
+    print("4. Run tests:")
+    print("   uv run pytest")
     print("\nRequired API keys:")
     print("- OPENAI_API_KEY: For DALL-E image generation")
     print("- REPLICATE_API_TOKEN: For various AI models")
+    print("\nUseful uv commands:")
+    print("- uv run <command>: Run a command in the virtual environment")
+    print("- uv add <package>: Add a new dependency")
+    print("- uv add --dev <package>: Add a development dependency")
+    print("- uv sync: Install/update dependencies")
+    print("- uv lock: Update lock file")
 
 
 if __name__ == "__main__":
-    main() 
+    main()

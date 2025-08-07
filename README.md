@@ -4,18 +4,28 @@ AI-powered image and video generation/understanding framework.
 
 ## Setup
 
-1. **Create and activate virtual environment:**
+## Setup
+
+1. **Install uv:**
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   # or with pip: pip install uv
    ```
 
-2. **Install dependencies:**
+2. **Setup with uv:**
    ```bash
-   pip install -r requirements.txt
+   python setup_uv.py
    ```
 
-3. **Configure API keys:**
+3. **Or manually with uv:**
+   ```bash
+   uv venv
+   uv sync
+   uv sync --extra dev  # For development dependencies
+   cp env.example .env
+   ```
+
+4. **Configure API keys:**
    ```bash
    cp env.example .env
    # Add your OPENAI_API_KEY to .env
@@ -24,12 +34,27 @@ AI-powered image and video generation/understanding framework.
 
 ## Usage
 
+### Running with uv
+
+Use `uv run` to execute commands in the virtual environment:
+
+```bash
+# Run any Python script
+uv run python media_gen/image_regen_pipeline.py --image-path photo.jpg --user-interests "basketball, kapybara"
+
+# Run tests
+uv run pytest
+
+# Run with specific Python version
+uv run --python 3.11 python your_script.py
+```
+
 ### Image Regeneration Pipeline
 
 Regenerate images with AI analysis and user preferences:
 
 ```bash
-python media-gen/image_regen_pipeline.py --image-path photo.jpg --user-interests "basketball, kapybara"
+uv run python media_gen/image_regen_pipeline.py --image-path photo.jpg --user-interests "basketball, kapybara"
 ```
 
 **Options:**
@@ -43,10 +68,10 @@ python media-gen/image_regen_pipeline.py --image-path photo.jpg --user-interests
 **Examples:**
 ```bash
 # Basic regeneration
-python media-gen/image_regen_pipeline.py --image-path landscape.jpg --user-interests "vintage style, steam punk"
+uv run python media_gen/image_regen_pipeline.py --image-path landscape.jpg --user-interests "vintage style, steam punk"
 
 # Custom output and aspect ratio
-python media-gen/image_regen_pipeline.py \
+uv run python media_gen/image_regen_pipeline.py \
   --image-path ~/Pictures/photo.jpg \
   --user-interests "make it modern and professional" \
   --output-folder ~/Desktop \
@@ -58,7 +83,7 @@ python media-gen/image_regen_pipeline.py \
 Process videos with AI understanding and generation:
 
 ```bash
-python media-gen/video_regen_pipeline.py --video-path video.mp4 --user-interests "basketball, kapybara"
+uv run python media_gen/video_regen_pipeline.py --video-path video.mp4 --user-interests "basketball, kapybara"
 ```
 
 **Options:**
@@ -66,6 +91,50 @@ python media-gen/video_regen_pipeline.py --video-path video.mp4 --user-interests
 - `--user-interests`: Processing preferences (required)
 - `--output-folder`: Output directory (default: `~/Downloads`)
 - `--screenshot-interval`: Seconds between screenshots (default: `2.0`)
+
+## Development
+
+### Adding Dependencies
+
+```bash
+# Add a new dependency
+uv add package-name
+
+# Add a development dependency
+uv add --dev package-name
+
+# Update dependencies
+uv sync
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run with coverage
+uv run pytest --cov=media_gen
+
+# Run specific test file
+uv run pytest media_gen/tests/test_image_understanding.py
+```
+
+### Code Quality
+
+```bash
+# Format code
+uv run black .
+
+# Sort imports
+uv run isort .
+
+# Type checking
+uv run mypy media_gen/
+
+# Linting
+uv run flake8 media_gen/
+```
 
 ## Extensibility
 
@@ -75,4 +144,4 @@ The framework is designed for easy extension. You can create custom tools for:
 - **Video generation models** (Runway, Pika Labs, etc.)
 - **Custom analysis tools** (scene detection, content filtering, etc.)
 
-Tools follow the base class in `media-gen/tools/media_gen_tool_base.py` for consistent integration.
+Tools follow the base class in `media_gen/tools/media_gen_tool_base.py` for consistent integration.
