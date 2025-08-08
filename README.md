@@ -2,6 +2,23 @@
 
 AI-powered image and video generation/understanding framework.
 
+## Architecture
+
+The framework follows a modular pipeline architecture with specialized tools for media understanding and generation:
+
+![Framework Architecture](architecture_diagram.svg)
+
+**Key Components:**
+- **Pipeline Layer**: Orchestrated workflows for image and video processing
+- **Tool Layer**: Specialized AI tools for understanding and generation
+- **Framework Layer**: Base classes and pipeline infrastructure
+- **Utility Layer**: Helper functions and file operations
+
+**Data Flow:**
+- Input media → Understanding → Generation → Output media
+- Configurable input/output mappings between pipeline steps
+- Extensible tool system following Polymind framework patterns
+
 ## Setup
 
 ## Setup

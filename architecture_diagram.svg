@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font-family: Arial, sans-serif; font-size: 24px; font-weight: bold; fill: #2c3e50; }
+      .subtitle { font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; fill: #34495e; }
+      .label { font-family: Arial, sans-serif; font-size: 12px; fill: #2c3e50; }
+      .component { fill: #ecf0f1; stroke: #bdc3c7; stroke-width: 2; }
+      .pipeline { fill: #3498db; stroke: #2980b9; stroke-width: 2; }
+      .tool { fill: #e74c3c; stroke: #c0392b; stroke-width: 2; }
+      .utility { fill: #f39c12; stroke: #e67e22; stroke-width: 2; }
+      .input { fill: #27ae60; stroke: #229954; stroke-width: 2; }
+      .output { fill: #8e44ad; stroke: #7d3c98; stroke-width: 2; }
+      .arrow { stroke: #2c3e50; stroke-width: 2; marker-end: url(#arrowhead); }
+      .data-flow { stroke: #e74c3c; stroke-width: 2; stroke-dasharray: 5,5; marker-end: url(#arrowhead-red); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2c3e50" />
+    </marker>
+    <marker id="arrowhead-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#e74c3c" />
+    </marker>
+  </defs>
+  
+  <!-- Title -->
+  <text x="600" y="30" text-anchor="middle" class="title">Media Regeneration Framework Architecture</text>
+  
+  <!-- Input Layer -->
+  <rect x="50" y="60" width="200" height="60" rx="10" class="input"/>
+  <text x="150" y="85" text-anchor="middle" class="subtitle">Input Media</text>
+  <text x="150" y="100" text-anchor="middle" class="label">Images and Videos</text>
+  <text x="150" y="115" text-anchor="middle" class="label">User Preferences</text>
+  
+  <!-- Core Pipeline Components -->
+  <rect x="300" y="60" width="200" height="60" rx="10" class="pipeline"/>
+  <text x="400" y="85" text-anchor="middle" class="subtitle">Image Pipeline</text>
+  <text x="400" y="100" text-anchor="middle" class="label">ImageUnderstanding →</text>
+  <text x="400" y="115" text-anchor="middle" class="label">ImageGeneration</text>
+  
+  <rect x="550" y="60" width="200" height="60" rx="10" class="pipeline"/>
+  <text x="650" y="85" text-anchor="middle" class="subtitle">Video Pipeline</text>
+  <text x="650" y="100" text-anchor="middle" class="label">VideoUnderstanding →</text>
+  <text x="650" y="115" text-anchor="middle" class="label">ImageGen → VideoGen</text>
+  
+  <!-- Tools Layer -->
+  <rect x="50" y="180" width="150" height="50" rx="8" class="tool"/>
+  <text x="125" y="200" text-anchor="middle" class="subtitle">Image Understanding</text>
+  <text x="125" y="215" text-anchor="middle" class="label">Content Analysis</text>
+  
+  <rect x="220" y="180" width="150" height="50" rx="8" class="tool"/>
+  <text x="295" y="200" text-anchor="middle" class="subtitle">Video Understanding</text>
+  <text x="295" y="215" text-anchor="middle" class="label">Keyframe Extraction</text>
+  
+  <rect x="390" y="180" width="150" height="50" rx="8" class="tool"/>
+  <text x="465" y="200" text-anchor="middle" class="subtitle">Image Generation</text>
+  <text x="465" y="215" text-anchor="middle" class="label">Replicate API</text>
+  
+  <rect x="560" y="180" width="150" height="50" rx="8" class="tool"/>
+  <text x="635" y="200" text-anchor="middle" class="subtitle">Video Generation</text>
+  <text x="635" y="215" text-anchor="middle" class="label">Replicate API</text>
+  
+  <!-- Base Classes -->
+  <rect x="50" y="280" width="200" height="50" rx="8" class="component"/>
+  <text x="150" y="300" text-anchor="middle" class="subtitle">Base Tool Classes</text>
+  <text x="150" y="315" text-anchor="middle" class="label">ImageGenerationTool</text>
+  <text x="150" y="330" text-anchor="middle" class="label">VideoGenerationTool</text>
+  
+  <!-- Pipeline Framework -->
+  <rect x="300" y="280" width="200" height="50" rx="8" class="component"/>
+  <text x="400" y="300" text-anchor="middle" class="subtitle">Pipeline Framework</text>
+  <text x="400" y="315" text-anchor="middle" class="label">PipelineStep</text>
+  <text x="400" y="330" text-anchor="middle" class="label">MediaGenerationPipeline</text>
+  
+  <!-- Utilities -->
+  <rect x="550" y="280" width="200" height="50" rx="8" class="utility"/>
+  <text x="650" y="300" text-anchor="middle" class="subtitle">Utilities</text>
+  <text x="650" y="315" text-anchor="middle" class="label">Video Utils</text>
+  <text x="650" y="330" text-anchor="middle" class="label">File Management</text>
+  
+  <!-- Output Layer -->
+  <rect x="800" y="60" width="200" height="60" rx="10" class="output"/>
+  <text x="900" y="85" text-anchor="middle" class="subtitle">Generated Media</text>
+  <text x="900" y="100" text-anchor="middle" class="label">Regenerated Images</text>
+  <text x="900" y="115" text-anchor="middle" class="label">Concatenated Videos</text>
+  
+  <!-- Data Flow Arrows -->
+  <!-- Input to Pipelines -->
+  <line x1="250" y1="90" x2="300" y2="90" class="arrow"/>
+  <line x1="250" y1="90" x2="300" y2="90" class="arrow"/>
+  <line x1="250" y1="90" x2="550" y2="90" class="arrow"/>
+  
+  <!-- Pipelines to Tools -->
+  <line x1="400" y1="120" x2="400" y2="180" class="data-flow"/>
+  <line x1="400" y1="120" x2="465" y2="180" class="data-flow"/>
+  <line x1="650" y1="120" x2="295" y2="180" class="data-flow"/>
+  <line x1="650" y1="120" x2="465" y2="180" class="data-flow"/>
+  <line x1="650" y1="120" x2="635" y2="180" class="data-flow"/>
+  
+  <!-- Tools to Base Classes -->
+  <line x1="125" y1="230" x2="150" y2="280" class="arrow"/>
+  <line x1="295" y1="230" x2="150" y2="280" class="arrow"/>
+  <line x1="465" y1="230" x2="150" y2="280" class="arrow"/>
+  <line x1="635" y1="230" x2="150" y2="280" class="arrow"/>
+  
+  <!-- Tools to Pipeline Framework -->
+  <line x1="200" y1="205" x2="300" y2="280" class="arrow"/>
+  <line x1="370" y1="205" x2="400" y2="280" class="arrow"/>
+  <line x1="540" y1="205" x2="500" y2="280" class="arrow"/>
+  <line x1="710" y1="205" x2="500" y2="280" class="arrow"/>
+  
+  <!-- Pipelines to Output -->
+  <line x1="500" y1="90" x2="800" y2="90" class="arrow"/>
+  <line x1="750" y1="90" x2="800" y2="90" class="arrow"/>
+  
+  <!-- Video Pipeline to Utilities -->
+  <line x1="650" y1="120" x2="650" y2="280" class="data-flow"/>
+  
+  <!-- Utilities to Output -->
+  <line x1="750" y1="305" x2="900" y2="90" class="data-flow"/>
+  
+  <!-- Legend -->
+  <rect x="50" y="400" width="1100" height="350" rx="10" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1"/>
+  <text x="600" y="420" text-anchor="middle" class="subtitle">Architecture Components</text>
+  
+  <!-- Legend Items -->
+  <rect x="80" y="440" width="20" height="15" class="input"/>
+  <text x="110" y="452" class="label">Input Layer: Original media and user preferences</text>
+  
+  <rect x="80" y="465" width="20" height="15" class="pipeline"/>
+  <text x="110" y="477" class="label">Pipeline Layer: Orchestrated processing workflows</text>
+  
+  <rect x="80" y="490" width="20" height="15" class="tool"/>
+  <text x="110" y="502" class="label">Tool Layer: Specialized AI/ML processing tools</text>
+  
+  <rect x="80" y="515" width="20" height="15" class="component"/>
+  <text x="110" y="527" class="label">Framework Layer: Base classes and pipeline infrastructure</text>
+  
+  <rect x="80" y="540" width="20" height="15" class="utility"/>
+  <text x="110" y="552" class="label">Utility Layer: Helper functions and file operations</text>
+  
+  <rect x="80" y="565" width="20" height="15" class="output"/>
+  <text x="110" y="577" class="label">Output Layer: Generated and processed media</text>
+  
+  <!-- Data Flow Legend -->
+  <line x1="80" y1="590" x2="100" y2="590" class="arrow"/>
+  <text x="110" y="595" class="label">Control flow between components</text>
+  
+  <line x1="80" y1="615" x2="100" y2="615" class="data-flow"/>
+  <text x="110" y="620" class="label">Data flow and transformations</text>
+  
+  <!-- Key Features -->
+  <text x="600" y="660" text-anchor="middle" class="subtitle">Key Features</text>
+  <text x="80" y="685" class="label">• Modular pipeline architecture with configurable input/output mappings</text>
+  <text x="80" y="700" class="label">• Extensible tool system following Polymind framework patterns</text>
+  <text x="80" y="715" class="label">• Support for both image and video regeneration workflows</text>
+  <text x="80" y="730" class="label">• Integration with external APIs (Replicate) for AI generation</text>
+  <text x="80" y="745" class="label">• Comprehensive logging and error handling throughout the pipeline</text>
+</svg>
